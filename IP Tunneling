@@ -17,3 +17,6 @@ Create a tunnel to my localhost using: ngrok 80 | ngrok http 80
 
 Command to SSH to the Pi:       //allow us to access the Pi remotely
 ngrok tcp 22
+
+<u>Getting started</u>
+https://projects.raspberrypi.org/en/projects/raspberry-pi-getting-started
