@@ -44,13 +44,23 @@ app.get('/pickup', (req, res) => {
         else
         {
             if (QRs != undefined)
+            {
                 message = "<h1 style = 'font-size: 40px;'>You're package is being delivered!</h1>"
+                //Add the response to the queue
+                console.log(response);
+            }
             else
                 message = "<h1 style = 'font-size: 40px;'>Sorry! this package is not in stock.</h1>"
         }
+        //Run python command
         res.send(start + message + end);
     });
 })
+
+app.get('/test', (req, res) =>
+{
+    res.send("Hello");
+});
 
 app.get('/Stocked', (req, res) => {  
     var newElements = new String();
