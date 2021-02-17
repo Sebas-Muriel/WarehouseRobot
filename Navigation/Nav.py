@@ -44,6 +44,7 @@ def splitNode(node):
 
 #Converts nodes such as A0 t0 (0,0) their number equivalent 
 #in the number format.
+#Only supports A-Z not AA AB etc
 def convertToGrid(node):
     split = splitNode(node)
     temp = list(split[0])
