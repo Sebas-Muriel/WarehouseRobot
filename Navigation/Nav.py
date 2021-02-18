@@ -2,8 +2,9 @@ import pymongo
 import sys
 import re
 import math
+import time
 
-START = "A0"
+START = "C0"
 
 def main(package):
     myclient = MongoDBconnection()
@@ -11,7 +12,40 @@ def main(package):
     mycol_packages = mydb["QRs"]
     mycol_nav = mydb["Navigation"]
     endingPoint = CreatePath(mycol_nav, mycol_packages, package)
+    currentPoint = convertToGrid(START)
+    print("Ending Point", endingPoint)
+    print("Starting Point", currentPoint)
     #While loop reading the Intersections/QRs until it gets to the package. 
+    Horizontal = True
+    print("Beginning Package Pickup\n\n", currentPoint, sep= "")
+    while(1):
+        if currentPoint[0] == endingPoint["End"][0]:
+            Horizontal = False
+            if currentPoint[1] == endingPoint["End"][1]:
+                break
+
+        if Horizontal == True:
+            #Go Horizontal first
+            #if IR sensor hits intersection
+            if (currentPoint[0] > endingPoint["End"][0]):
+                currentPoint[0] -= 1
+            else:
+                currentPoint[0] += 1
+            time.sleep(2)
+        else:
+            #Go Vertically  
+            #if IR sensor hits intersection
+            if (currentPoint[1] > endingPoint["End"][1]):
+                currentPoint[1] -= 1
+            else:
+                currentPoint[1] += 1
+            time.sleep(2)
+        
+        if currentPoint[0] == endingPoint["End"][0]:
+            Horizontal = False
+
+        print(currentPoint)
+    print("Robot must go", endingPoint["Direction"], "to get to the package")
     return
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -28,8 +62,13 @@ def MongoDBconnection():
 
 #Returns an array of the path that the robot needs to travel
 def CreatePath(Nav, QRs, item):
-    itemLoc = QRs.find_one({}, {"_id": 0, "Name" :item, "Left": 1, "Right": 1})
+    for collection in QRs.find():
+        if collection["Item"] == item:
+            itemLoc = collection
+            break
+    #itemLoc = QRs.find({}, {"_id": 0, "Item" :item, "Left": 1, "Right": 1})
     print(itemLoc)
+
     itemLoc["Left"]  = convertToGrid(itemLoc["Left"])
     itemLoc["Right"] = convertToGrid(itemLoc["Right"])
     return chooseInitialPath(itemLoc["Left"], itemLoc["Right"])
@@ -55,13 +94,18 @@ def convertToGrid(node):
 #Calculates the distance between the two starting points
 #Picks the closest one to the start point
 def chooseInitialPath(left, right):
+    helper = {}
     startSplit = convertToGrid(START)
     leftval = math.sqrt(((left[0]-startSplit[0])**2 + (left[1]-startSplit[1])**2))
     rightval = math.sqrt(((right[0]-startSplit[0])**2 + (right[1]-startSplit[1])**2))
     if (leftval >= rightval):
-        return right
+        helper["End"] = right
+        helper["Direction"] = "Left"
+        return helper
     else:
-        return left
+        helper["End"] = left
+        helper["Direction"] = "Right"
+        return helper
 
 #Todo Create IR sensor reading code
 def readIRsensors():
