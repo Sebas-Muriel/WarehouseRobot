@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 var path = require('path');
 var myParser = require("body-parser");
-const port = 3000
+const port = 8080
 
 //*****************MONDO DB STUFF****************//
 const uri = "mongodb://127.0.0.1:27017/WarehouseMap";
