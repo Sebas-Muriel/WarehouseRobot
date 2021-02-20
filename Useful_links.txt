@@ -1,0 +1,2 @@
+https://pinout.xyz/pinout/i2c
+Useful for looking at the pinout diagrams for the Pi. This specific page is for I2C.
