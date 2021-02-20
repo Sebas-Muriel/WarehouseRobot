@@ -12,8 +12,8 @@ def main(package):
     mydb = myclient["WarehouseMap"]
     mycol_packages = mydb["QRs"]
     mycol_nav = mydb["Navigation"]
-    endingPoint = CreatePath(mycol_nav, mycol_packages, package)
     currentPoint = convertToGrid(START)
+    endingPoint = CreatePath(mycol_nav, mycol_packages, package)
     print("Ending Point", endingPoint)
     print("Starting Point", currentPoint)
     #While loop reading the Intersections/QRs until it gets to the package. 
@@ -29,17 +29,17 @@ def main(package):
             #Go Horizontal first
             #if IR sensor hits intersection
             if (currentPoint[0] > endingPoint["End"][0]):
-                navMove("Left")
+                navMove("Left", currentPoint)
             else:
-                navMove("Right")
+                navMove("Right", currentPoint)
             time.sleep(2)
         else:
             #Go Vertically  
             #if IR sensor hits intersection
             if (currentPoint[1] > endingPoint["End"][1]):
-                navMove("Down")
+                navMove("Down", currentPoint)
             else:
-                navMove("Up")
+                navMove("Up", currentPoint)
             time.sleep(2)
         
         if currentPoint[0] == endingPoint["End"][0]:
@@ -48,20 +48,20 @@ def main(package):
         print(currentPoint)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
-    searchPackage = false
+    searchPackage = False
     while(searchPackage):
         #if the package is to the left, move left
-        if(endingPoint["Direction"] == "Left")
-            #searchMove("Left")
+        #if(endingPoint["Direction"] == Left):
+            #searchMove(Left)
         #if the package is to the right, move right
-        elif(endingPoint["Direction"] == "Right")
-            #searchMove("Right")
+        #elif(endingPoint["Direction"] == Right):
+            #searchMove(Right)
         #readQR()
         #if QR code contains package
             #pickupPackage()
             #searchPackage = 0
-        #returnToStart()
-        
+        #returnToStart(currentPoint)
+        return
     return
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -136,21 +136,21 @@ def readQR():
 
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
-    if(searchDirection == "Left")
+    #if(searchDirection == Left):
         #move left a little bit
-    if(searchDirection == "Right")
+    #if(searchDirection == Right):
         #move right a little bit
     return
 
 #function for navigating to the end node from start
-def navMove(navDirection):
-    if(navDirection == "Left")
+def navMove(navDirection, currentPoint):
+    if(navDirection == "Left"):
         currentPoint[0] -= 1
-    if(navDirection == "Right")
+    if(navDirection == "Right"):
         currentPoint[0] += 1
-    if(navDirection == "Up")
+    if(navDirection == "Up"):
         currentPoint[1] += 1
-    if(navDirection == "Down")
+    if(navDirection == "Down"):
         currentPoint[1] -= 1
     return
 
@@ -171,18 +171,18 @@ def dropPackage():
     return
 
 #function to return to start
-def returnToStart():
+def returnToStart(currentPoint):
     #if not at an intersection
         #move to an intersection
-    while(currentPoint[0] != 0)
-        if(currentPoint[0] > 0)
+    while(currentPoint[0] != 0):
+        if(currentPoint[0] > 0):
             navMove["Left"]
-        else
+        else:
             navMove["Right"]
-    while(currentPoint[1] != 0)
-        if(currentPoint[1] > 0)
+    while(currentPoint[1] != 0):
+        if(currentPoint[1] > 0):
             navMove["Down"]
-        else
+        else:
             navMove["Up"]
     return
 
