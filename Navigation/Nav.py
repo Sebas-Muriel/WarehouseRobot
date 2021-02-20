@@ -29,17 +29,17 @@ def main(package):
             #Go Horizontal first
             #if IR sensor hits intersection
             if (currentPoint[0] > endingPoint["End"][0]):
-                currentPoint[0] -= 1
+                navDirection("Left")
             else:
-                currentPoint[0] += 1
+                navDirection("Right")
             time.sleep(2)
         else:
             #Go Vertically  
             #if IR sensor hits intersection
             if (currentPoint[1] > endingPoint["End"][1]):
-                currentPoint[1] -= 1
+                navDirection("Down")
             else:
-                currentPoint[1] += 1
+                navDirection("Up")
             time.sleep(2)
         
         if currentPoint[0] == endingPoint["End"][0]:
@@ -47,6 +47,21 @@ def main(package):
 
         print(currentPoint)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
+
+    searchPackage = false
+    while(searchPackage):
+        #if the package is to the left, move left
+        if(endingPoint["Direction"] == "Left")
+            #searchMove("Left")
+        #if the package is to the right, move right
+        elif(endingPoint["Direction"] == "Right")
+            #searchMove("Right")
+        #readQR()
+        #if QR code contains package
+            #pickupPackage()
+            #searchPackage = 0
+        #returnToStart()
+        
     return
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -113,7 +128,59 @@ def readIRsensors():
     return
 
 #Todo Read QR code code
-def ReadQR():
+def readQR():
+    return
+
+#Todo Create code to move robot when searching for a box inbetween nodes
+def searchMove(searchDirection):
+    if(searchDirection == "Left")
+        #move left a little bit
+    if(searchDirection == "Right")
+        #move right a little bit
+    return
+
+#function for navigating to the end node from start
+def navMove(navDirection):
+    if(navDirection == "Left")
+        currentPoint[0] -= 1
+    if(navDirection == "Right")
+        currentPoint[0] += 1
+    if(navDirection == "Up")
+        currentPoint[1] += 1
+    if(navDirection == "Down")
+        currentPoint[1] -= 1
+    return
+
+#function to pickup the package
+def pickupPackage():
+    #move forward
+    #lift forklift
+    #move back
+    return
+
+#function to drop off the package
+def dropPackage():
+    #turn 180 degrees
+    #go forward
+    #lower forklift
+    #back up
+    #turn 180 degrees
+    return
+
+#function to return to start
+def returnToStart():
+    #if not at an intersection
+        #move to an intersection
+    while(currentPoint[0] != 0)
+        if(currentPoint[0] > 0)
+            navMove["Left"]
+        else
+            navMove["Right"]
+    while(currentPoint[1] != 0)
+        if(currentPoint[1] > 0)
+            navMove["Down"]
+        else
+            navMove["Up"]
     return
 
 if __name__ == "__main__":
