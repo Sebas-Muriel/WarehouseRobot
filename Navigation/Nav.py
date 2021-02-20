@@ -29,17 +29,17 @@ def main(package):
             #Go Horizontal first
             #if IR sensor hits intersection
             if (currentPoint[0] > endingPoint["End"][0]):
-                navDirection("Left")
+                navMove("Left")
             else:
-                navDirection("Right")
+                navMove("Right")
             time.sleep(2)
         else:
             #Go Vertically  
             #if IR sensor hits intersection
             if (currentPoint[1] > endingPoint["End"][1]):
-                navDirection("Down")
+                navMove("Down")
             else:
-                navDirection("Up")
+                navMove("Up")
             time.sleep(2)
         
         if currentPoint[0] == endingPoint["End"][0]:
@@ -129,6 +129,9 @@ def readIRsensors():
 
 #Todo Read QR code code
 def readQR():
+    #activate camera
+    #take in QR code
+    #return data
     return
 
 #Todo Create code to move robot when searching for a box inbetween nodes
