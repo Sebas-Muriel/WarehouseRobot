@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Senior Design T311 & T304 Project</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+.w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+.fa-anchor,.fa-coffee {font-size:200px}
+.fifth{
+  float: left;
+  width: 20%;
+}
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+}
+.button {
+  background-color: white; /* Green */
+  border: none;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
+.button2:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+</style>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-blue w3-card w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+    <a href="#" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+    <a href="#Abstract" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Abstract</a>
+    <a href="#MeetTeam" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Meet The Team</a>
+    <a href="#Files" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Files</a>
+    <a href="Project.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-blue">Project</a>
+    <a href="http://localhost:3000" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-blue">User</a>
+  </div>
+
+  <!-- Navbar on small screens -->
+  <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+    <a href="#Abstract" class="w3-bar-item w3-button  w3-padding-large w3-hover-white">Abstract</a>
+    <a href="#MeetTeam" class="w3-bar-item w3-button  w3-padding-large w3-hover-white">Meet The Team</a>
+    <a href="#Files" class="w3-bar-item w3-button  w3-padding-large w3-hover-white">Files</a>
+    <a href="Project.html" class="w3-bar-item w3-button w3-padding-large w3-blue">Project</a>
+    <a href="http://localhost:3000" class="w3-bar-item w3-button w3-padding-large w3-blue">User</a>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="w3-container w3-light-grey w3-center" style="padding:128px 16px">
+  <h1 class="w3-margin w3-jumbo">SD Material Handler Robot</h1>
+  <!--<p class="w3-xlarge">Sponsers: FSU-FAMU College of Engineering</p> -->
+  <!--<button class="w3-button w3-black w3-padding-large w3-large w3-margin-top">Deliverables</button>-->
+</header>
+
+<!-- First Grid -->
+<div class="w3-row-padding w3-padding-64 w3-container" style= "
+  background-image: url('https://www.eng.famu.fsu.edu/sites/default/files/styles/100_width_responsive/public/2020-01/coe-signage-1200x500_3.jpg?itok=smb5kSAO');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;">
+  <!-- <div class= "w3-center">
+    <img src = "https://upload.wikimedia.org/wikipedia/commons/4/49/FAMU-FSU_College_of_Engineering_Logo.jpg" alt = "FSU-FAMU Logo">
+  </div> -->
+  <div class="w3-content w3-white">
+    <div class="w3-center w3-light-grey">
+      <h1 class = "w3-center w3-container">Project Sponsers and Advisor</h1>
+    </div>
+    <div class = "w3-container w3-white">
+        <div class = "w3-third w3-center w3-padding w3-padding-32">
+            <img src="https://www.eng.famu.fsu.edu/sites/default/files/2020-08/JerrisHooker.jpg" alt="Dr. Hooker">
+            <h3 class = "w3-text-black"><b><u>Dr. Jerris Hooker</u></b></h3>
+            <h5 class = "w3-bold w3-text-black w3-container"><b>Academic Advisor</b><br>Department of Electrical & Computer Engineering</h5>
+        </div>
+        <div class ="w3-third w3-center w3-padding w3-padding-32">
+            <img src="https://www.eng.famu.fsu.edu/sites/default/files/2018-09/Oscar-Chuy.jpg" alt="Dr. Chuy">
+            <h3 class = "w3-text-black"><b><u>Dr. Oscar Chuy</u></b></h3>
+            <h5 class = "w3-bold w3-text-black w3-conatiner"><b>Academic Advisor</b><br>Department of Electrical & Computer Engineering</h5>
+        </div>
+        <div class = "w3-third w3-center w3-padding w3-padding-32">
+            <img src="https://www.eng.famu.fsu.edu/sites/default/files/2018-03/bruce-harvey.jpg" alt="Dr. Harvey">
+            <h3 class = "w3-text-black"><b><u>Dr. Bruce Harvey</u></b></h3>
+            <h5 class = "w3-bold w3-text-black w3-conatiner"><b>Academic Advisor</b><br>Department of Electrical & Computer Engineering</h5>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Second Grid -->
+<div id = "Abstract" class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+  <div class="w3-content">
+    <div class="w3-left-align">
+      <h1 class = "w3-center">Abstract</h1>
+      <p class="w3-text-grey">  
+        &nbsp &nbsp &nbsp &nbsp Automatic warehouses are becoming more popular because of new automation
+        technology. Robots are used to improve the storing and retrieving of packages in a warehouse
+        while also lowering employee costs. These robots work more efficiently in dark warehouses
+        where there is almost no human involvement. This lowers the warehouse costs because
+        maintaining favorable working conditions for humans is not needed. Costs will go down further
+        from lowering the price of human labor. Pursuing this project will not only increase profits but
+        will reduce liability for products stored in the warehouses.            
+        <br>&nbsp &nbsp &nbsp &nbsp This project develops an autonomous mobile robot that can be deployed in dark
+        warehouses. The robot is autonomous enough to track, receive, and store packages on its own.
+        However, the robot will need human aid if something goes wrong in the warehouse. To track
+        packages around the warehouse, QR codes, a readable picture that stores information, are
+        used. These are also helpful for creating a map of the warehouse for the robot. To ensure
+        accuracy and safety the robot's path is restricted to black lines around the warehouse that lead
+        to each package location. The robot is also equipped with a forklift lifting mechanism to lift and
+        hold the packages. To test the robot, a scaled down warehouse that includes black lines, QR
+        codes, and packages will be built.
+        <br>&nbsp &nbsp &nbsp &nbsp This project allows us to put into practice combining a variety of disciplines in a team
+        setting to assemble a fully functioning robot. Each member benefits by having the opportunity
+        to expand current knowledge they have of their discipline while developing new skills. The
+        mechanical engineers are able to improve their robotics skills while being introduced to
+        practices for databases and path-planning. Computer and electrical engineers practiced
+        creating databases and general programming skills, while also being exposed to building a
+        system. 
+      </p>
+    </div>
+  </div>
+  <div class = "w3-center w3-padding-32">
+    <img id = "MeetTeam"  src = "https://th.bing.com/th/id/OIP.3GR33DYfSSGDmLmjvS5HZAHaD9?pid=Api&rs=1" alt = "Logo">
+  </div>
+</div>
+
+<!-- Third Grid -->
+<div class="w3-container w3-white w3-center w3-padding-16">
+  <h1 class="w3-margin"><b>Meet The Team</b></h1>
+  <h4 class="w3-center w3-padding-16"><b>Team 511</b></h4>
+  <div class = "w3-container w3-white">
+    <div class = "fifth">
+      <img style = "width: 200px; height: 200px" src = "https://media-exp1.licdn.com/dms/image/C4D03AQFEQdQ62K1aXA/profile-displayphoto-shrink_400_400/0/1604619381014?e=1617235200&v=beta&t=AieXB2faMZONbTePbF6fUSEmUmI9cmcsCKhSMpwbJ-A">
+      <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+        <p1 class = "w3-text-black"><b>Alexandar Jen</b><br></p1>
+        <p1 class = "w3-text-black">This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+      </div>
+    </div>
+    <div class = "fifth">
+      <img style = "width: 200px; height: 200px" src = "https://media-exp1.licdn.com/dms/image/C4E03AQHCVMrkPa-ytA/profile-displayphoto-shrink_400_400/0/1603305445441?e=1617235200&v=beta&t=xdK_Lw5PSjME_iRb1JwCEJcyL1gQyahfpoLZcC30pqc">
+      <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+        <p1 class= "w3-text-black"><b>Tiffany Miller</b></p1>
+        <p1 class = "w3-text-black"><br>This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+      </div>
+    </div>
+    <div class = "fifth">
+      <img style = "width: 200px; height: 200px" src = "https://media-exp1.licdn.com/dms/image/C4D03AQGuC6wfB1gm5w/profile-displayphoto-shrink_800_800/0/1545682594709?e=1617235200&v=beta&t=5IWdYR5vV6s-qhAWZ0sRGPYpcmI4tplvL3jHWjWk_U0">
+      <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+        <p1 class = "w3-text-black"><b>Sebastion Muriel</b></p1>
+        <p1 class = "w3-text-black"><br>This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+      </div>
+    </div>
+    <div class = "fifth">
+      <img style = "width: 200px; height: 200px" src = "https://gazettereview.com/wp-content/uploads/2016/03/facebook-avatar.jpg">
+      <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+        <p1 class = "w3-text-black"><b>Walter A. Caldwell Jr.</b></p1>
+        <p1 class = "w3-text-black"><br>This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+      </div>
+    </div>
+    <div class = "fifth">
+      <img style = "width: 200px; height: 200px" src = "https://gazettereview.com/wp-content/uploads/2016/03/facebook-avatar.jpg">
+      <div center = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+        <p1 class = "w3-text-black"><b>Tony Zheng</b></p1>
+        <p1 class = "w3-text-black"><br>This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+      </div>
+    </div>
+  </div>
+
+
+
+    <h4 class = "w3-center w3-padding-16"><b>Team 506</b></h4>
+    <div class = "w3-row w3-container w3-white">
+      <div class = "w3-quarter">
+        <img style = "width: 200px; height: 200px" src = "https://media-exp1.licdn.com/dms/image/C4E03AQEyyGnqrScDxg/profile-displayphoto-shrink_800_800/0/1598824629285?e=1617235200&v=beta&t=ftd11brgq43qh0HPvQKM3rrmwYx5uXkm84YPDNkJcUo">
+        <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+          <p1 class = "w3-text-black"><b>Alexander Wozny</b><br></p1>
+          <p1 class = "w3-text-black">This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+        </div>
+      </div>
+      <div class = "w3-quarter">
+        <img style = "width: 200px; height: 200px" src = "https://media-exp1.licdn.com/dms/image/C4E03AQGnOFZjrf38iw/profile-displayphoto-shrink_800_800/0/1600719927133?e=1617235200&v=beta&t=dfuK7DluZ8LoDinKRetOQPbazNgLws-YuJFMe3mkSRI">
+        <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;" >
+          <p1 class = "w3-text-black"><b>Taylor Harvey</b><br></p1>
+          <p1 class = "w3-text-black">This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+        </div>
+      </div>
+      <div class = "w3-quarter">
+        <img style = "width: 200px; height: 200px" src = "https://media-exp1.licdn.com/dms/image/C4E03AQH9tu9vzJ5ezQ/profile-displayphoto-shrink_800_800/0/1581518642604?e=1617235200&v=beta&t=gpJTxr_Hyjlv1m9qfL2vCsuJ4bQvLcWoOmS-AofC_Lg">
+        <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;" >
+          <p1 class = "w3-text-black"><b>Peter Watson</b><br></p1>
+          <p1 class = "w3-text-black">This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+        </div>
+      </div>
+      <div class = "w3-quarter">
+        <img style = "width: 200px; height: 200px" src = "https://gazettereview.com/wp-content/uploads/2016/03/facebook-avatar.jpg">
+        <div class = "w3-center" style= "padding-left: 32px; padding-right: 32px;">
+          <p1 class = "w3-text-black"><b>Diandre Reyes</b><br></p1>
+          <p1 class = "w3-text-black">This is some stuff about me or maybe a quote. Filler information to see how it looks</p1>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fourth Grid -->
+<div id = "Files" class = "w3-container w3-light-grey w3-padding-16">
+  <h1 class = "w3-center">Files</h1>
+  <div class = "w3-half">
+    <h2 class = "w3-center">Team 311 Files</h2>
+    <div class = "w3-center">
+      <a href="VDR1.pptx" class="button button2">VDR1</a>
+      <a href="VDR2.pptx" class="button button2">VDR2</a>
+      <a href="VDR3.pptx" class="button button2">VDR3</a>
+      <a href="VDR4.pptx" class="button button2">VDR4</a>
+    </div>
+  </div>
+  <div class = "w3-rest">
+    <h2 class = "w3-center">Team 506 Files</h2>
+    <div class = "w3-center">
+      <a href="TVDR1.pptx" class="button button2">VDR1</a>
+      <a href="TVDR2.pptx" class="button button2">VDR2</a>
+      <a href="TVDR3.pptx" class="button button2">VDR3</a>
+      <a href="TVDR4.pptx" class="button button2">VDR4</a>
+    </div>
+  </div>
+</div>
+<!-- Footer -->
+<footer class="w3-container w3-padding-16 w3-center w3-blue">  
+  <div class="w3-xlarge ">
+    <i class="fa fa-facebook-official w3-hover-opacity"></i>
+    <i class="fa fa-instagram w3-hover-opacity"></i>
+    <i class="fa fa-snapchat w3-hover-opacity"></i>
+    <i class="fa fa-pinterest-p w3-hover-opacity"></i>
+    <i class="fa fa-twitter w3-hover-opacity"></i>
+    <i class="fa fa-linkedin w3-hover-opacity"></i>
+ </div>
+</footer>
+
+<script>
+// Used to toggle the menu on small screens when clicking on the menu button
+function myFunction() {
+  var x = document.getElementById("navDemo");
+  if (x.className.indexOf("w3-show") == -1) {
+    x.className += " w3-show";
+  } else { 
+    x.className = x.className.replace(" w3-show", "");
+  }
+}
+</script>
+
+</body>
+</html>
