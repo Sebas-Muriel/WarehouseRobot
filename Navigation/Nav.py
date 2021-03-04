@@ -1,10 +1,14 @@
 #test
+# need these installed on py: sudo apt-get install python-serial
+sudo pip install pyserial
 import pymongo
 import sys
 import re
 import math
 import time
+import serial
 
+ser = serial.Serial('/dev/ttyACM0',9600)
 START = "C0"
 
 def main(package):
@@ -125,7 +129,11 @@ def chooseInitialPath(left, right):
 
 #Todo Create IR sensor reading code
 def readIRsensors():
-    return
+    read_serial = ser.readline()
+    if read_serial == "1":
+        return true
+    else:
+        return false
 
 #Todo Read QR code code
 def readQR():
