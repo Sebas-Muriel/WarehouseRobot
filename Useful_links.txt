@@ -1,2 +1,4 @@
 https://pinout.xyz/pinout/i2c
 Useful for looking at the pinout diagrams for the Pi. This specific page is for I2C.
+
+https://www.teachmemicro.com/raspberry-pi-serial-uart-tutorial/
