@@ -1,2 +1,5 @@
 https://pinout.xyz/pinout/i2c
 Useful for looking at the pinout diagrams for the Pi. This specific page is for I2C.
+
+Raspberry Pi QR scan code: 
+https://www.hackster.io/gatoninja236/scan-qr-codes-in-real-time-with-raspberry-pi-a5268b
