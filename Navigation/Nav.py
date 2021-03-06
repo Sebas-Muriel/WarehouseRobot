@@ -1,10 +1,14 @@
 #test
+# need these installed on py: sudo apt-get install python-serial
+sudo pip install pyserial
 import pymongo
 import sys
 import re
 import math
 import time
+import serial
 
+ser = serial.Serial('/dev/ttyACM0',9600)
 START = "C0"
 
 def main(package):
@@ -76,7 +80,7 @@ def MongoDBconnection():
     print(mydb.list_collection_names())
     return myclient
 
-#Returns an array of the path that the robot needs to travel
+#Returns an array of the last point that the robot needs to travel
 def CreatePath(Nav, QRs, item):
     for collection in QRs.find():
         if collection["Item"] == item:
@@ -125,7 +129,11 @@ def chooseInitialPath(left, right):
 
 #Todo Create IR sensor reading code
 def readIRsensors():
-    return
+    read_serial = ser.readline()
+    if read_serial == "1":
+        return true
+    else:
+        return false
 
 #Todo Read QR code code
 def readQR():
@@ -171,20 +179,20 @@ def dropPackage():
     return
 
 #function to return to start
-def returnToStart(currentPoint):
-    #if not at an intersection
-        #move to an intersection
-    while(currentPoint[0] != 0):
-        if(currentPoint[0] > 0):
-            navMove["Left"]
-        else:
-            navMove["Right"]
-    while(currentPoint[1] != 0):
-        if(currentPoint[1] > 0):
-            navMove["Down"]
-        else:
-            navMove["Up"]
-    return
+# def returnToStart(currentPoint):
+#     #if not at an intersection
+#         #move to an intersection
+#     while(currentPoint[0] != 0):
+#         if(currentPoint[0] > 0):
+#             navMove["Left"]
+#         else:
+#             navMove["Right"]
+#     while(currentPoint[1] != 0):
+#         if(currentPoint[1] > 0):
+#             navMove["Down"]
+#         else:
+#             navMove["Up"]
+#     return
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    main(sys.argv[1])

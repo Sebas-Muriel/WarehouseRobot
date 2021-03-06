@@ -1,0 +1,12 @@
+https://roboticsbackend.com/introduction-to-wiringpi-for-raspberry-pi/
+
+*Important*
+In your Cpp programs, add the <wiringPi.h> header.
+When compiling, add -lwiringPi to the g++ parameters so it will find and link your program to the WiringPi library.
+
+-------------------------------------------------------------------------------------------------------------------
+
+If the above option does not work,
+We will use GPIOzero
+
+https://gpiozero.readthedocs.io/en/stable/recipes.html
