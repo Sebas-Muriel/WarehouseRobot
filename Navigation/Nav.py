@@ -8,7 +8,16 @@ import math
 import time
 import serial
 
-ser = serial.Serial('/dev/ttyACM0',9600)
+#Left = 1
+#Right = 2
+#Up = 3
+#DOwn = 4
+#Stop = 0
+
+
+ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
+readUART = 0
+writeUART = 0
 START = "C0"
 
 def main(package):
@@ -32,40 +41,48 @@ def main(package):
         if Horizontal == True:
             #Go Horizontal first
             #if IR sensor hits intersection
+            #if(readIRsensors() == True):
             if (currentPoint[0] > endingPoint["End"][0]):
                 navMove("Left", currentPoint)
+                ser.write('1')
             else:
                 navMove("Right", currentPoint)
+                ser.write('2')
             time.sleep(2)
         else:
             #Go Vertically  
             #if IR sensor hits intersection
+            #if (readIRsensors() == True):
             if (currentPoint[1] > endingPoint["End"][1]):
                 navMove("Down", currentPoint)
+                ser.write('4')
             else:
                 navMove("Up", currentPoint)
+                ser.write('3')
             time.sleep(2)
-        
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
 
         print(currentPoint)
+    #Tell Arduino to stop
+    ser.write(0)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
-    searchPackage = False
-    while(searchPackage):
-        #if the package is to the left, move left
-        #if(endingPoint["Direction"] == Left):
-            #searchMove(Left)
-        #if the package is to the right, move right
-        #elif(endingPoint["Direction"] == Right):
-            #searchMove(Right)
-        #readQR()
-        #if QR code contains package
-            #pickupPackage()
-            #searchPackage = 0
-        #returnToStart(currentPoint)
-        return
+    # searchPackage = False
+    # while(searchPackage):
+
+    #     #if the package is to the left, move left
+    #     #if(endingPoint["Direction"] == Left):
+    #         #searchMove(Left)
+    #     #if the package is to the right, move right
+    #     #elif(endingPoint["Direction"] == Right):
+    #         #searchMove(Right)
+    #     #readQR()
+    #     #if QR code contains package
+    #         #pickupPackage()
+    #         #searchPackage = 0
+    #     #returnToStart(currentPoint)
+    #     return
     return
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -144,9 +161,11 @@ def readQR():
 
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
-    #if(searchDirection == Left):
+    if(searchDirection == Left):
+        ser.write(1)
         #move left a little bit
-    #if(searchDirection == Right):
+    if(searchDirection == Right):
+        ser.write(2)
         #move right a little bit
     return
 
