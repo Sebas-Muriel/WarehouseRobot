@@ -7,6 +7,8 @@ if __name__ == '__main__':
     while True:
         line = ser.readline().decode('utf-8').rstrip()
         print(line)
-        if line == "1":
-             ser.write("#".encode('ascii'))
-             print("here")
+        # if line == "1":
+        #      ser.write("#".encode('ascii'))
+        #      print("here")
+
+        ser.write(b"1/r20/r")

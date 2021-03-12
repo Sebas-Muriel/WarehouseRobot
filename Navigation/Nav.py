@@ -19,8 +19,7 @@ tickMode = '11'
 
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
-readUART = 0
-writeUART = 0
+firstFLG = 0
 START = "D2"
 
 def main(package):
@@ -35,13 +34,29 @@ def main(package):
     #While loop reading the Intersections/QRs until it gets to the package. 
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
-    ser.write(nodeMode.encode('ascii'))
+
+
+    #Decided which direction to go at start
+    if currentPoint[0] == endingPoint["End"][0]:
+        if currentPoint[1] == endingPoint["End"][1]:
+            break
+        else:
+            if (currentPoint[1] > endingPoint["End"][1]):
+                ser.write((Down + nodeMode).encode('ascii'))
+            else:
+                ser.write((Up + nodeMode).encode('ascii'))
+    else:
+        if (currentPoint[0] > endingPoint["End"][0]):
+            ser.write((Left + nodeMode).encode('ascii'))
+        else:
+            ser.write((Right + nodeMode).encode('ascii'))
+
+
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
             if currentPoint[1] == endingPoint["End"][1]:
                 break
-
         if Horizontal == True:
             #Go Horizontal first
             #if IR sensor hits intersection
@@ -52,7 +67,6 @@ def main(package):
                 else:
                     navMove("Right", currentPoint)
                     ser.write(Right.encode('ascii'))
-
         else:
             #Go Vertically  
             #if IR sensor hits intersection

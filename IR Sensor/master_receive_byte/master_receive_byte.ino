@@ -49,9 +49,12 @@ void loop()
         //Serial.println(address2Val,BIN);                 
     }
 
-    if (modeFlag == 0)
+    if (mode == 0)
     {
-      modeFlag = Serial.read();
+      dir = Serial.read();
+      mode = Serial.read();
+      Serial.println(dir);
+      Serial.println(mode);
     }
 
     if (mode == nodeMode)
@@ -70,10 +73,15 @@ void loop()
   
       if (intersectionFLG == 1)
       {
-        if (Serial.available()> 0)
+        if (Serial.available() == 1)
         {
           dir = Serial.read();
           Serial.println(dir);
+        }
+        else if (Serial.available == 2)
+        {
+          dir = Serial.read();
+          mode = Serial.read();
         }
       }
   
