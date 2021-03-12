@@ -1,142 +1,94 @@
 [{
-  "_id": {
-    "$oid": "602a1678a4b36b75eb8f114c"
-  },
   "Name": "A0",
   "Left": "null",
   "Right": "B0",
   "Down": "null",
   "Up": "A1"
 },{
-  "_id": {
-    "$oid": "602a1739a4b36b75eb8f114d"
-  },
   "Name": "B0",
   "Left": "A0",
   "Right": "C0",
   "Down": "null",
   "Up": "B1"
 },{
-  "_id": {
-    "$oid": "602a1782a4b36b75eb8f114e"
-  },
   "Name": "C0",
   "Left": "B0",
   "Right": "D0",
   "Down": "null",
   "Up": "C1"
 },{
-  "_id": {
-    "$oid": "602a17c4a4b36b75eb8f114f"
-  },
   "Name": "D0",
   "Left": "C0",
   "Right": "null",
   "Down": "null",
   "Up": "D1"
 },{
-  "_id": {
-    "$oid": "602a1818a4b36b75eb8f1150"
-  },
   "Name": "A1",
   "Left": "null",
   "Right": "B1",
   "Down": "A0",
   "Up": "A2"
 },{
-  "_id": {
-    "$oid": "602a1840a4b36b75eb8f1151"
-  },
   "Name": "B1",
   "Left": "A1",
   "Right": "C1",
   "Down": "B0",
   "Up": "B2"
 },{
-  "_id": {
-    "$oid": "602a1858a4b36b75eb8f1152"
-  },
   "Name": "C1",
   "Left": "B1",
   "Right": "D1",
   "Down": "C0",
   "Up": "C2"
 },{
-  "_id": {
-    "$oid": "602a187aa4b36b75eb8f1153"
-  },
   "Name": "D1",
   "Left": "C1",
   "Right": "null",
   "Down": "D0",
   "Up": "D2"
 },{
-  "_id": {
-    "$oid": "602a18b7a4b36b75eb8f1154"
-  },
   "Name": "A2",
   "Left": "null",
   "Right": "B2",
   "Down": "A1",
   "Up": "A3"
 },{
-  "_id": {
-    "$oid": "602a18d0a4b36b75eb8f1155"
-  },
   "Name": "B2",
   "Left": "A2",
   "Right": "C2",
   "Down": "B1",
   "Up": "B3"
 },{
-  "_id": {
-    "$oid": "602a1935a4b36b75eb8f1156"
-  },
   "Name": "C2",
   "Left": "B2",
   "Right": "D2",
   "Down": "C1",
   "Up": "C3"
 },{
-  "_id": {
-    "$oid": "602a194ea4b36b75eb8f1157"
-  },
   "Name": "D2",
   "Left": "C2",
   "Right": "null",
   "Down": "D1",
   "Up": "D3"
 },{
-  "_id": {
-    "$oid": "602a1966a4b36b75eb8f1158"
-  },
   "Name": "A3",
   "Left": "null",
   "Right": "B3",
   "Down": "A2",
   "Up": "null"
 },{
-  "_id": {
-    "$oid": "602a1984a4b36b75eb8f1159"
-  },
   "Name": "B3",
   "Left": "A3",
   "Right": "C3",
   "Down": "B2",
   "Up": "null"
 },{
-  "_id": {
-    "$oid": "602a19a2a4b36b75eb8f115a"
-  },
   "Name": "C3",
   "Left": "B3",
   "Right": "D3",
   "Down": "C2",
   "Up": "null"
 },{
-  "_id": {
-    "$oid": "602a19eaa4b36b75eb8f115b"
-  },
   "Name": "D3",
   "Left": "C3",
   "Right": "null",

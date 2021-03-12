@@ -6,10 +6,10 @@ import re
 import math
 import time
 import serial
-import cv2
+#import cv2
 
 
-#Left = 1
+#Left = 5
 #Right = 2
 #Up = 3
 #DOwn = 4
@@ -19,7 +19,7 @@ import cv2
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 readUART = 0
 writeUART = 0
-START = "A0"
+START = "D2"
 
 def main(package):
     myclient = MongoDBconnection()
@@ -45,7 +45,7 @@ def main(package):
             if(readIRsensors() == True):
                 if (currentPoint[0] > endingPoint["End"][0]):
                     navMove("Left", currentPoint)
-                    ser.write(b'1')
+                    ser.write(b'5')
                 else:
                     navMove("Right", currentPoint)
                     ser.write(b'2')
@@ -66,7 +66,7 @@ def main(package):
 
         print(currentPoint)
     #Tell Arduino to stop
-    ser.write(0)
+    ser.write(b"0")
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
     # searchPackage = False
@@ -149,6 +149,7 @@ def chooseInitialPath(left, right):
 line = ser.readline().decode('utf-8').rstrip()
 def readIRsensors():
     read_serial = ser.readline().decode('utf-8').rstrip()
+    print(read_serial)
     if read_serial == "1":
         return True
     else:
@@ -189,7 +190,7 @@ def readQR():
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
     if(searchDirection == Left):
-        ser.write(b"1")
+        ser.write(b"5")
         #move left a little bit
     if(searchDirection == Right):
         ser.write(b"2")
