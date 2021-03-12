@@ -6,7 +6,7 @@ import re
 import math
 import time
 import serial
-#import cv2
+import cv2
 
 
 #Left = 1
@@ -189,10 +189,10 @@ def readQR():
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
     if(searchDirection == Left):
-        ser.write(1)
+        ser.write(b"1")
         #move left a little bit
     if(searchDirection == Right):
-        ser.write(2)
+        ser.write(b"2")
         #move right a little bit
     return
 
