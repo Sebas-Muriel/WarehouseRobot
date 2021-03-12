@@ -1,17 +1,25 @@
 #test
 # need these installed on py: sudo apt-get install python-serial
-sudo pip install pyserial
 import pymongo
 import sys
 import re
 import math
 import time
 import serial
-import cv2
+#import cv2
 
 
-ser = serial.Serial('/dev/ttyACM0',9600)
-START = "C0"
+#Left = 1
+#Right = 2
+#Up = 3
+#DOwn = 4
+#Stop = 0
+
+
+ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
+readUART = 0
+writeUART = 0
+START = "A0"
 
 def main(package):
     myclient = MongoDBconnection()
@@ -34,40 +42,48 @@ def main(package):
         if Horizontal == True:
             #Go Horizontal first
             #if IR sensor hits intersection
-            if (currentPoint[0] > endingPoint["End"][0]):
-                navMove("Left", currentPoint)
-            else:
-                navMove("Right", currentPoint)
-            time.sleep(2)
+            if(readIRsensors() == True):
+                if (currentPoint[0] > endingPoint["End"][0]):
+                    navMove("Left", currentPoint)
+                    ser.write(b'1')
+                else:
+                    navMove("Right", currentPoint)
+                    ser.write(b'2')
+
         else:
             #Go Vertically  
             #if IR sensor hits intersection
-            if (currentPoint[1] > endingPoint["End"][1]):
-                navMove("Down", currentPoint)
-            else:
-                navMove("Up", currentPoint)
-            time.sleep(2)
-        
+            if (readIRsensors() == True):
+                if (currentPoint[1] > endingPoint["End"][1]):
+                    navMove("Down", currentPoint)
+                    ser.write(b'4')
+                else:
+                    navMove("Up", currentPoint)
+                    ser.write(b'3')
+
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
 
         print(currentPoint)
+    #Tell Arduino to stop
+    ser.write(0)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
-    searchPackage = False
-    while(searchPackage):
-        #if the package is to the left, move left
-        #if(endingPoint["Direction"] == Left):
-            #searchMove(Left)
-        #if the package is to the right, move right
-        #elif(endingPoint["Direction"] == Right):
-            #searchMove(Right)
-        #readQR()
-        #if QR code contains package
-            #pickupPackage()
-            #searchPackage = 0
-        #returnToStart(currentPoint)
-        return
+    # searchPackage = False
+    # while(searchPackage):
+
+    #     #if the package is to the left, move left
+    #     #if(endingPoint["Direction"] == Left):
+    #         #searchMove(Left)
+    #     #if the package is to the right, move right
+    #     #elif(endingPoint["Direction"] == Right):
+    #         #searchMove(Right)
+    #     #readQR()
+    #     #if QR code contains package
+    #         #pickupPackage()
+    #         #searchPackage = 0
+    #     #returnToStart(currentPoint)
+    #     return
     return
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -130,12 +146,13 @@ def chooseInitialPath(left, right):
         return helper
 
 #Todo Create IR sensor reading code
+line = ser.readline().decode('utf-8').rstrip()
 def readIRsensors():
-    read_serial = ser.readline()
+    read_serial = ser.readline().decode('utf-8').rstrip()
     if read_serial == "1":
-        return true
+        return True
     else:
-        return false
+        return False
 
 #Todo Read QR code code
 def readQR():
@@ -171,9 +188,11 @@ def readQR():
 
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
-    #if(searchDirection == Left):
+    if(searchDirection == Left):
+        ser.write(1)
         #move left a little bit
-    #if(searchDirection == Right):
+    if(searchDirection == Right):
+        ser.write(2)
         #move right a little bit
     return
 

@@ -30,7 +30,6 @@ void setup()
 
 void loop()
 {
-
     Wire.requestFrom(SLAVE_ADDRESS1, 1);     
 
 
