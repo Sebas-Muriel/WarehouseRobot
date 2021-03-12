@@ -1,8 +1,9 @@
 const express = require('express')
 const app = express()
+const { spawn } = require('child_process');
 var path = require('path');
 var myParser = require("body-parser");
-const port = 8080
+const port = 8081
 
 //*****************MONDO DB STUFF****************//
 const uri = "mongodb://127.0.0.1:27017/WarehouseMap";
@@ -59,7 +60,17 @@ app.get('/pickup', (req, res) => {
 
 app.get('/test', (req, res) =>
 {
-    res.send("Hello");
+    var dataToSend;
+    const python = spawn('python', ['script1.py']);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+        dataToSend = data.toString();
+       });
+
+    python.on('close', (code) => {
+        console.log(`child process close all stdio with code ${code}`); 
+        res.send(dataToSend)
+    });
 });
 
 app.get('/Stocked', (req, res) => {  

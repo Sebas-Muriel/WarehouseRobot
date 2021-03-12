@@ -7,15 +7,25 @@
 #define SLAVE_ADDRESS1 0x08
 #define SLAVE_ADDRESS2 0x09
 
+#define Left 0x01
+#define Right 0x02
+#define Up 0x03
+#define Down 0x04
+#define Stop 0x00
+
+
 uint8_t address1Val = 0;
 uint8_t address2Val = 0;
-uint8_t sender = 0;
+uint8_t intersectionFLG = 0;
 time_t current, prev;
-uint8_t response;
+
+char dir = '0';
+
 void setup()
 {
     Serial.begin(9600);
     Wire.begin();                               // Join I2C bus.
+    pinMode(13, OUTPUT);
 }
 
 void loop()
@@ -38,31 +48,39 @@ void loop()
     }
 
     //If there is an intersection send a 1 to the py if not send a 0
-    if (address2Val == 0xFF || address1Val == 0xFF){
+    if ((address2Val == 0xFF || address1Val == 0xFF) && intersectionFLG == 0){
       //Stop movement
-      
-      //busy wait for the pi to send back an ack
-      while(response != sender){
-        prev = now();
-        sender = 1;
-        Serial.print(sender);
-        if (Serial.available() > 0){
-          response = Serial.read();
-            if (response == sender) break; 
-        }
-        //wait three senconds before sending again
-        while( (second(current) - second(prev)) >= 3){
-          current = now();
-        }
-        
-      }
+      intersectionFLG = 1;
+      //dir = Stop;
+      Serial.println("1");
     }
     else{
-      sender = 0;
-      Serial.print(sender);
+      Serial.println("0");
+      dir = '0';
+    }
+
+    if (intersectionFLG == 1)
+    {
+      if (Serial.available()> 0)
+      {
+        dir = Serial.read();
+        Serial.println(dir);
+      }
+    }
+
+    if (dir == 35){
+      digitalWrite(13, LOW);
+    }
+    else
+    {
+      digitalWrite(13, HIGH);
+    }
+
+    if (address2Val != 0xFF){
+      intersectionFLG = 0;
     }
     
 
     //PID CONTROL
-    delay(1000);
+    delay(2000);
 }

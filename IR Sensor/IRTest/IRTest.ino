@@ -2,7 +2,7 @@
 #include <Wire.h>
 QTRSensors qtr;
 
-#define SLAVE_ADDRESS 0x08
+#define SLAVE_ADDRESS 0x09
 const uint8_t SensorCount = 8;
 uint16_t sensorValues[SensorCount];
 uint8_t value = 5;
