@@ -9,11 +9,13 @@ import serial
 #import cv2
 
 
-#Left = 5
-#Right = 2
-#Up = 3
-#DOwn = 4
-#Stop = 0
+Left = '5'
+Right = '2'
+Up = '3'
+Down = '4'
+Stop = '0'
+nodeMode = '10'
+tickMode = '11'
 
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
@@ -33,6 +35,7 @@ def main(package):
     #While loop reading the Intersections/QRs until it gets to the package. 
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
+    ser.write(nodeMode.encode('ascii'))
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
@@ -45,10 +48,10 @@ def main(package):
             if(readIRsensors() == True):
                 if (currentPoint[0] > endingPoint["End"][0]):
                     navMove("Left", currentPoint)
-                    ser.write(b'5')
+                    ser.write(Left.encode('ascii'))
                 else:
                     navMove("Right", currentPoint)
-                    ser.write(b'2')
+                    ser.write(Right.encode('ascii'))
 
         else:
             #Go Vertically  
@@ -56,17 +59,17 @@ def main(package):
             if (readIRsensors() == True):
                 if (currentPoint[1] > endingPoint["End"][1]):
                     navMove("Down", currentPoint)
-                    ser.write(b'4')
+                    ser.write(Down.encode('ascii'))
                 else:
                     navMove("Up", currentPoint)
-                    ser.write(b'3')
+                    ser.write(Up.encode('ascii'))
 
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
 
         print(currentPoint)
     #Tell Arduino to stop
-    ser.write(b"0")
+    ser.write(Stop.encode('ascii'))
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
     # searchPackage = False
@@ -190,10 +193,10 @@ def readQR():
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
     if(searchDirection == Left):
-        ser.write(b"5")
+        ser.write(Left.encode('ascii'))
         #move left a little bit
     if(searchDirection == Right):
-        ser.write(b"2")
+        ser.write(Right.encode('ascii'))
         #move right a little bit
     return
 
