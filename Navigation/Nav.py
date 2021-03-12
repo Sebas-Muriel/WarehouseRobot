@@ -1,13 +1,12 @@
 #test
 # need these installed on py: sudo apt-get install python-serial
-sudo pip install pyserial
 import pymongo
 import sys
 import re
 import math
 import time
 import serial
-import cv2
+#import cv2
 
 
 #Left = 1
@@ -20,7 +19,7 @@ import cv2
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 readUART = 0
 writeUART = 0
-START = "C0"
+START = "A0"
 
 def main(package):
     myclient = MongoDBconnection()
@@ -43,25 +42,25 @@ def main(package):
         if Horizontal == True:
             #Go Horizontal first
             #if IR sensor hits intersection
-            #if(readIRsensors() == True):
-            if (currentPoint[0] > endingPoint["End"][0]):
-                navMove("Left", currentPoint)
-                ser.write('1')
-            else:
-                navMove("Right", currentPoint)
-                ser.write('2')
-            time.sleep(2)
+            if(readIRsensors() == True):
+                if (currentPoint[0] > endingPoint["End"][0]):
+                    navMove("Left", currentPoint)
+                    ser.write(b'1')
+                else:
+                    navMove("Right", currentPoint)
+                    ser.write(b'2')
+
         else:
             #Go Vertically  
             #if IR sensor hits intersection
-            #if (readIRsensors() == True):
-            if (currentPoint[1] > endingPoint["End"][1]):
-                navMove("Down", currentPoint)
-                ser.write('4')
-            else:
-                navMove("Up", currentPoint)
-                ser.write('3')
-            time.sleep(2)
+            if (readIRsensors() == True):
+                if (currentPoint[1] > endingPoint["End"][1]):
+                    navMove("Down", currentPoint)
+                    ser.write(b'4')
+                else:
+                    navMove("Up", currentPoint)
+                    ser.write(b'3')
+
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
 
@@ -147,12 +146,13 @@ def chooseInitialPath(left, right):
         return helper
 
 #Todo Create IR sensor reading code
+line = ser.readline().decode('utf-8').rstrip()
 def readIRsensors():
-    read_serial = ser.readline()
+    read_serial = ser.readline().decode('utf-8').rstrip()
     if read_serial == "1":
-        return true
+        return True
     else:
-        return false
+        return False
 
 #Todo Read QR code code
 def readQR():
