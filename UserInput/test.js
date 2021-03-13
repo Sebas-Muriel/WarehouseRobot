@@ -49,20 +49,25 @@ app.get('/pickup', (req, res) => {
         {
             if (QRs != undefined)
             {
-                message = "<h1 style = 'font-size: 40px;'>You're package is being delivered!</h1>"
+              if(BUSY == false)
+              {
+                message = "<h1 style = 'font-size: 40px;'>The robot is busy!</h1>"
 
-                // const python = spawn('python', ['../Navigation/Nav.py', 'Box1']);
-                // python.stdout.on('data', function (data) {
-                //     console.log('Pipe data from python script ...');
-                //     dataToSend = data.toString();
-                //    });
+                const python = spawn('python', ['../Navigation/Nav.py', 'Box1']);
+                python.stdout.on('data', function (data) {
+                     console.log('Pipe data from python script ...');
+                     dataToSend = data.toString();
+                     BUSY = true
+                    });
             
-                // python.on('close', (code) => {
-                //     console.log(`child process close all stdio with code ${code}`); 
-                //     res.send(dataToSend)
-                // });
+                 python.on('close', (code) => {
+                     console.log(`child process close all stdio with code ${code}`); 
+                     BUSY = false
+                     res.send(dataToSend)
+                 });
                 //Add the response to the queue
                 console.log(response);
+              }
             }
             else
                 message = "<h1 style = 'font-size: 40px;'>Sorry! this package is not in stock.</h1>"
@@ -76,17 +81,19 @@ app.get('/pickup', (req, res) => {
 app.get('/test', (req, res) =>
 {
     req.get('host');
-    // var dataToSend;
-    // const python = spawn('python', ['script1.py']);
-    // python.stdout.on('data', function (data) {
-    //     console.log('Pipe data from python script ...');
-    //     dataToSend = data.toString();
-    //    });
+    var dataToSend;
+    const python = spawn('python', ['script1.py', "Box1"]);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+        dataToSend = data.toString();
+        BUSY = true
+       });
 
-    // python.on('close', (code) => {
-    //     console.log(`child process close all stdio with code ${code}`); 
-    //     res.send(dataToSend)
-    // });
+    python.on('close', (code) => {
+       console.log(`child process close all stdio with code ${code}`); 
+       BUSY = false
+       return res.send(dataToSend)
+    });
     res.send(req.get('host'));
 });
 
