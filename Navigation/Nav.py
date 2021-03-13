@@ -9,18 +9,34 @@ import serial
 #import cv2
 
 
-Left = '5'
-Right = '2'
-Up = '3'
-Down = '4'
-Stop = '0'
-nodeMode = '10'
-tickMode = '11'
+leftTick = bytearray()
+leftTick.append(0x03)
+leftNode = bytearray()
+leftNode.append(0x02)
+rightTick = bytearray()
+rightTick.append(0x05)
+rightNode = bytearray()
+rightNode.append(0x04)
+upTick = bytearray()
+upTick.append(0x07)
+upNode = bytearray()
+upNode.append(0x06)
+downTick = bytearray()
+downTick.append(0x09)
+downNode = bytearray()
+downNode.append(0x08)
+stopTick = bytearray()
+stopTick.append(0x01)
+stopNode = bytearray()
+stopNode.append(0x00)
+reset = bytearray()
+reset.append(0x80)
 
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 firstFLG = 0
 START = "D2"
+startSerial = ""
 
 def main(package):
     myclient = MongoDBconnection()
@@ -36,20 +52,24 @@ def main(package):
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
 
 
-    #Decided which direction to go at start
-    if currentPoint[0] == endingPoint["End"][0]:
-        if currentPoint[1] == endingPoint["End"][1]:
-            break
-        else:
-            if (currentPoint[1] > endingPoint["End"][1]):
-                ser.write((Down + nodeMode).encode('ascii'))
+    startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
+    while(startSerial != '20'):
+        #Decided which direction to go at start
+        if currentPoint[0] == endingPoint["End"][0]:
+            if currentPoint[1] == endingPoint["End"][1]:
+                firstFLG = 1
             else:
-                ser.write((Up + nodeMode).encode('ascii'))
-    else:
-        if (currentPoint[0] > endingPoint["End"][0]):
-            ser.write((Left + nodeMode).encode('ascii'))
+                if (currentPoint[1] > endingPoint["End"][1]):
+                    ser.write(downNode)
+                else:
+                    ser.write(upNode)
         else:
-            ser.write((Right + nodeMode).encode('ascii'))
+            if (currentPoint[0] > endingPoint["End"][0]):
+                ser.write(leftNode)
+            else:
+                ser.write(rightNode)
+        startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
+        print(startSerial)
 
 
     while(1):
@@ -63,28 +83,31 @@ def main(package):
             if(readIRsensors() == True):
                 if (currentPoint[0] > endingPoint["End"][0]):
                     navMove("Left", currentPoint)
-                    ser.write(Left.encode('ascii'))
+                    ser.write(leftNode)
                 else:
                     navMove("Right", currentPoint)
-                    ser.write(Right.encode('ascii'))
+                    ser.write(rightNode)
         else:
             #Go Vertically  
             #if IR sensor hits intersection
             if (readIRsensors() == True):
                 if (currentPoint[1] > endingPoint["End"][1]):
                     navMove("Down", currentPoint)
-                    ser.write(Down.encode('ascii'))
+                    ser.write(downNode)
                 else:
                     navMove("Up", currentPoint)
-                    ser.write(Up.encode('ascii'))
+                    ser.write(upNode)
 
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
 
         print(currentPoint)
     #Tell Arduino to stop
-    ser.write(Stop.encode('ascii'))
+    ser.write(stopTick)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
+
+    while(1):
+        readIRsensors()
 
     # searchPackage = False
     # while(searchPackage):
@@ -163,9 +186,9 @@ def chooseInitialPath(left, right):
         return helper
 
 #Todo Create IR sensor reading code
-line = ser.readline().decode('utf-8').rstrip()
+#line = ser.readline().decode('utf-8').rstrip()
 def readIRsensors():
-    read_serial = ser.readline().decode('utf-8').rstrip()
+    read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
     print(read_serial)
     if read_serial == "1":
         return True
@@ -207,10 +230,10 @@ def readQR():
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
     if(searchDirection == Left):
-        ser.write(Left.encode('ascii'))
+        ser.write(leftTick)
         #move left a little bit
     if(searchDirection == Right):
-        ser.write(Right.encode('ascii'))
+        ser.write(rightTick)
         #move right a little bit
     return
 
