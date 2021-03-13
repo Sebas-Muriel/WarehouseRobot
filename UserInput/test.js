@@ -57,10 +57,12 @@ app.get('/pickup', (req, res) => {
                 python.stdout.on('data', function (data) {
                      console.log('Pipe data from python script ...');
                      dataToSend = data.toString();
+                     BUSY = true
                     });
             
                  python.on('close', (code) => {
                      console.log(`child process close all stdio with code ${code}`); 
+                     BUSY = false
                      res.send(dataToSend)
                  });
                 //Add the response to the queue
