@@ -77,7 +77,7 @@ app.get('/test', (req, res) =>
 {
     req.get('host');
     var dataToSend;
-    const python = spawn('python', ['script1.py'], arg1);
+    const python = spawn('python', ['script1.py'], "Box1");
     python.stdout.on('data', function (data) {
         console.log('Pipe data from python script ...');
         dataToSend = data.toString();
