@@ -77,17 +77,17 @@ app.get('/test', (req, res) =>
 {
     req.get('host');
     var dataToSend;
-    const python = spawn('python', ['script1.py']);
+    const python = spawn('python', ['script1.py'], arg1);
     python.stdout.on('data', function (data) {
         console.log('Pipe data from python script ...');
         dataToSend = data.toString();
-        //BUSY = true
+        BUSY = true
        });
 
     python.on('close', (code) => {
        console.log(`child process close all stdio with code ${code}`); 
         res.send(dataToSend)
-        //BUSY = false
+        BUSY = false
     });
     res.send(req.get('host'));
 });
