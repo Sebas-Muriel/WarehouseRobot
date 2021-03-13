@@ -76,17 +76,19 @@ app.get('/pickup', (req, res) => {
 app.get('/test', (req, res) =>
 {
     req.get('host');
-    // var dataToSend;
-    // const python = spawn('python', ['script1.py']);
-    // python.stdout.on('data', function (data) {
-    //     console.log('Pipe data from python script ...');
-    //     dataToSend = data.toString();
-    //    });
+    var dataToSend;
+    const python = spawn('python', ['script1.py']);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+        dataToSend = data.toString();
+        //BUSY = true
+       });
 
-    // python.on('close', (code) => {
-    //     console.log(`child process close all stdio with code ${code}`); 
-    //     res.send(dataToSend)
-    // });
+    python.on('close', (code) => {
+       console.log(`child process close all stdio with code ${code}`); 
+        res.send(dataToSend)
+        //BUSY = false
+    });
     res.send(req.get('host'));
 });
 
