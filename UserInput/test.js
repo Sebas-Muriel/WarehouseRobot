@@ -86,8 +86,8 @@ app.get('/test', (req, res) =>
 
     python.on('close', (code) => {
        console.log(`child process close all stdio with code ${code}`); 
-        res.send(dataToSend)
-        BUSY = false
+       BUSY = false
+       return res.send(dataToSend)
     });
     res.send(req.get('host'));
 });
