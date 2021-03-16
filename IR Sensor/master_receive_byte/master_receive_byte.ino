@@ -70,7 +70,7 @@ void loop()
         //Serial.println(address2Val,BIN);                 
     }
 
-    if (mode == nodeMode)
+    if (mode == nodeMode && reset != 0b10000000)
     {
       //If there is an intersection send a 1 to the py if not send a 0
       if ((address2Val == 0xFF || address1Val == 0xFF) && intersectionFLG == 0){
@@ -103,7 +103,7 @@ void loop()
       }
       //Serial.println("IN NODE MODE");
     }
-    else if (mode == tickMode)
+    else if (mode == tickMode && reset != 0b10000000)
     {
       if (address2Val == 0b11110000 || address2Val == 0b11111000)
       {

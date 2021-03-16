@@ -6,7 +6,7 @@ import re
 import math
 import time
 import serial
-#import cv2
+import cv2
 
 
 leftTick = bytearray()
@@ -56,9 +56,7 @@ def main(package):
     while(startSerial != '20'):
         #Decided which direction to go at start
         if currentPoint[0] == endingPoint["End"][0]:
-            if currentPoint[1] == endingPoint["End"][1]:
-                firstFLG = 1
-            else:
+            if currentPoint[1] != endingPoint["End"][1]:
                 if (currentPoint[1] > endingPoint["End"][1]):
                     ser.write(downNode)
                 else:
@@ -79,24 +77,16 @@ def main(package):
                 break
         if Horizontal == True:
             #Go Horizontal first
-            #if IR sensor hits intersection
-            if(readIRsensors() == True):
-                if (currentPoint[0] > endingPoint["End"][0]):
-                    navMove("Left", currentPoint)
-                    ser.write(leftNode)
-                else:
-                    navMove("Right", currentPoint)
-                    ser.write(rightNode)
+            if (currentPoint[0] > endingPoint["End"][0]):
+                navMove("Left", currentPoint)
+            else:
+                navMove("Right", currentPoint)
         else:
             #Go Vertically  
-            #if IR sensor hits intersection
-            if (readIRsensors() == True):
-                if (currentPoint[1] > endingPoint["End"][1]):
-                    navMove("Down", currentPoint)
-                    ser.write(downNode)
-                else:
-                    navMove("Up", currentPoint)
-                    ser.write(upNode)
+            if (currentPoint[1] > endingPoint["End"][1]):
+                navMove("Down", currentPoint)
+            else:
+                navMove("Up", currentPoint)
 
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
@@ -106,25 +96,56 @@ def main(package):
     ser.write(stopTick)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
-    while(1):
-        readIRsensors()
+    searchMove(endingPoint["Direction"])
 
-    # searchPackage = False
-    # while(searchPackage):
+    searchPackage = False
+    while(searchPackage):
 
-    #     #if the package is to the left, move left
-    #     #if(endingPoint["Direction"] == Left):
-    #         #searchMove(Left)
-    #     #if the package is to the right, move right
-    #     #elif(endingPoint["Direction"] == Right):
-    #         #searchMove(Right)
-    #     #readQR()
-    #     #if QR code contains package
-    #         #pickupPackage()
-    #         #searchPackage = 0
-    #     #returnToStart(currentPoint)
-    #     return
+        # Move in the direcetino of the package
+        searchMove(endingPoint["Direction"])
+        if (readIRsensors() == True):
+            ser.write(stopTick)
+            #readQR()
+                #if QR code contains package
+                    #pickup
+                    #searchPackage = True
+            #move motor up
+                #if QR code contains package
+                    #pickup
+                    #searchPackage = True
+        # returnToStart(currentPoint)
     return
+
+    endingPoint["End"] = convertToGrid(START)
+    if (endingPoint["Direction"] == "Left"):
+        currentPoint[0] -= 1
+    else:
+        currentPoint[0] += 1
+    
+    while(1):
+        if currentPoint[0] == endingPoint["End"][0]:
+            Horizontal = False
+            if currentPoint[1] == endingPoint["End"][1]:
+                break
+        if Horizontal == True:
+            #Go Horizontal first
+            if (currentPoint[0] > endingPoint["End"][0]):
+                navMove("Left", currentPoint)
+            else:
+                navMove("Right", currentPoint)
+        else:
+            #Go Vertically  
+            if (currentPoint[1] > endingPoint["End"][1]):
+                navMove("Down", currentPoint)
+            else:
+                navMove("Up", currentPoint)
+
+        if currentPoint[0] == endingPoint["End"][0]:
+            Horizontal = False
+
+        print(currentPoint)
+    #Tell Arduino to stop
+    ser.write(stopTick)
 
 #Connects to the mongoDB client and prints out the available databases and collections
 def MongoDBconnection():
@@ -229,24 +250,29 @@ def readQR():
 
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
-    if(searchDirection == Left):
-        ser.write(leftTick)
-        #move left a little bit
-    if(searchDirection == Right):
-        ser.write(rightTick)
-        #move right a little bit
+    if (readIRsensors() == True):
+        if(searchDirection == "Left"):
+            ser.write(leftTick)
+            #move left a little bit
+        if(searchDirection == "Right"):
+            ser.write(rightTick)
+            #move right a little bit
     return
 
 #function for navigating to the end node from start
 def navMove(navDirection, currentPoint):
     if(navDirection == "Left"):
         currentPoint[0] -= 1
+        ser.write(leftNode)
     if(navDirection == "Right"):
         currentPoint[0] += 1
+        ser.write(rightNode)
     if(navDirection == "Up"):
         currentPoint[1] += 1
+        ser.write(upNode)
     if(navDirection == "Down"):
         currentPoint[1] -= 1
+        ser.write(downNode)
     return
 
 #function to pickup the package
