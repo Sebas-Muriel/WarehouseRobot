@@ -13,16 +13,17 @@
 #define Down 0x04
 #define Stop 0x00
 
-#define nodeMode 0
-#define tickMode 1
+#define nodeMode 0b00000000
+#define tickMode 0b00000001
 
 uint8_t address1Val = 0;
 uint8_t address2Val = 0;
 uint8_t intersectionFLG = 0;
+uint8_t tickIntersectionFLG = 0;
 time_t current, prev;
 
 char dir = '0';
-char mode = 'A';
+char mode = 0x40;
 char reset = '0';
 uint8_t data;
 
@@ -37,20 +38,29 @@ void setup()
 
 void loop()
 {
-    while(mode == 'A')
+
+  if (mode == 0x40)
+  {
+    while(1)
     {
+      tickIntersectionFLG = 0;
+      intersectionFLG = 0;
+      dir = '0';
+      Serial.println("Reset Mode");
       if (Serial.available() >= 1)
       {
+        data = Serial.read();
         dir = data&0b00001110;
-        mode = data&0b00000001;
+        mode = data&0b01000001;
         reset = data&0b10000000;
       }
-      if (mode == 0b0 || mode == 0b1)
+      if (mode == 0b00000000 || mode == 0b00000001)
       {
         Serial.println("20");
+        break;
       }
-
     }
+  }
     
 
 
@@ -76,7 +86,6 @@ void loop()
       if ((address2Val == 0xFF || address1Val == 0xFF) && intersectionFLG == 0){
         //Stop movement
         intersectionFLG = 1;
-        //dir = Stop;
         Serial.println("1");
       }
       else{
@@ -90,32 +99,57 @@ void loop()
         { 
           data = Serial.read();
           dir = data&0b00001110;
-          mode = data&0b00000001;
+          mode = data&0b01000001;
           reset = data&0b10000000;
-//          Serial.print("Data is: ");
-//          Serial.print(data);
-//          Serial.println();
         }
       }
   
       if (address2Val != 0xFF){
         intersectionFLG = 0;
       }
-      //Serial.println("IN NODE MODE");
+      Serial.println("IN NODE MODE");
     }
     else if (mode == tickMode && reset != 0b10000000)
     {
-      if (address2Val == 0b11110000 || address2Val == 0b11111000)
+      if ((address2Val == 0b11110000 || address2Val == 0b11111000) && tickIntersectionFLG == 0)
       {
+        tickIntersectionFLG = 1;
         Serial.println("1");
       }
       else
       {
         Serial.println("0");
       }
+
+      if (tickIntersectionFLG == 1)
+      {
+        if (Serial.available() >= 1)
+        { 
+          data = Serial.read();
+          dir = data&0b00001110;
+          mode = data&0b01000001;
+          reset = data&0b10000000;
+
+          
+        }
+      }
+
+        
+      if (address2Val != 0xF8 && address2Val != 0xF0){
+        tickIntersectionFLG = 0;
+      }
       Serial.println("IN TICK MODE");
     }
 
+    if (Serial.available() >= 1)
+    {
+      data = Serial.read();
+      dir = data&0b00001110;
+      mode = data&0b01000001;
+      reset = data&0b10000000;
+    }
+    Serial.print("Mode: ");
+    Serial.println(mode);
     //PID CONTROL
     //delay(2000);
 }
