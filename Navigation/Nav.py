@@ -6,6 +6,7 @@ import re
 import math
 import time
 import serial
+import json
 import cv2
 
 
@@ -30,7 +31,7 @@ stopTick.append(0x01)
 stopNode = bytearray()
 stopNode.append(0x00)
 reset = bytearray()
-reset.append(0x80)
+reset.append(0x40)
 
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
@@ -51,6 +52,9 @@ def main(package):
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
 
+    # QR = readQR()
+    # print(QR)
+        
 
     startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
     while(startSerial != '20'):
@@ -68,7 +72,6 @@ def main(package):
                 ser.write(rightNode)
         startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
         print(startSerial)
-
 
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
@@ -99,29 +102,73 @@ def main(package):
     searchMove(endingPoint["Direction"])
 
     searchPackage = False
-    while(searchPackage):
+    while(searchPackage != True):
 
         # Move in the direcetino of the package
         searchMove(endingPoint["Direction"])
         if (readIRsensors() == True):
             ser.write(stopTick)
-            #readQR()
-                #if QR code contains package
-                    #pickup
-                    #searchPackage = True
-            #move motor up
-                #if QR code contains package
-                    #pickup
-                    #searchPackage = True
-        # returnToStart(currentPoint)
-    return
+            QR = readQR()
+            if (QR != "null"):
+                QR = json.loads(QR)
+                QR["Item"] = QR["Item"].replace(" ", "")
+                print(QR)
+                
+                if (QR["Item"] == package):
+                    print("here")
+                    searchPackage = True
+                    ser.flush()
+                    break
+                        #pickup
+                        #searchPackage = True
+                #move motor up
+                    #if QR code contains package
+                        #pickup
+                        #searchPackage = True
+            # returnToStart(currentPoint)
+        
+    #Reach the intersection
+    print("Resetting")
+    ser.write(reset)
 
+    if (endingPoint["Direction"] == "Left"):
+        ser.write(leftNode)
+        while(readIRsensors() != True):
+            pass
+    else:
+        ser.write(rightNode)
+        while(readIRsensors() != True):
+            pass
+    ser.write(stopTick)
+    ser.write(reset)
+
+    startSerial = ""
+    print("begining Going back to Start")
     endingPoint["End"] = convertToGrid(START)
     if (endingPoint["Direction"] == "Left"):
         currentPoint[0] -= 1
     else:
         currentPoint[0] += 1
+
+    print("starting Point", currentPoint, "ending Point: ", endingPoint["End"])
+    while(startSerial != '20'):
+        #Decided which direction to go at start
+        if currentPoint[0] == endingPoint["End"][0]:
+            if currentPoint[1] != endingPoint["End"][1]:
+                if (currentPoint[1] > endingPoint["End"][1]):
+                    ser.write(downNode)
+                else:
+                    ser.write(upNode)
+        else:
+            if (currentPoint[0] > endingPoint["End"][0]):
+                ser.write(leftNode)
+            else:
+                ser.write(rightNode)
+        startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
+        print(startSerial)
     
+    Horizontal = True
+
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
@@ -146,6 +193,8 @@ def main(package):
         print(currentPoint)
     #Tell Arduino to stop
     ser.write(stopTick)
+    return
+
 
 #Connects to the mongoDB client and prints out the available databases and collections
 def MongoDBconnection():
@@ -223,8 +272,15 @@ def readQR():
 
     # QR code detection object
     detector = cv2.QRCodeDetector()
+    startTime = time.time()
 
     while True:
+        currentTime = time.time()
+        if (currentTime - startTime > 10):
+            data = "null"
+            cap.release()
+            cv2.destroyAllWindows()
+            return data
         # get the image
         _, img = cap.read()
         # get bounding box coords and data
@@ -239,6 +295,9 @@ def readQR():
                         0.5, (0, 255, 0), 2)
             if data:
                 print("Package: ", data)
+                cap.release()
+                cv2.destroyAllWindows()
+                return data
         # display the image preview
         cv2.imshow("Package detection", img)
         if(cv2.waitKey(1) == ord("q")):
@@ -250,29 +309,29 @@ def readQR():
 
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
-    if (readIRsensors() == True):
-        if(searchDirection == "Left"):
-            ser.write(leftTick)
-            #move left a little bit
-        if(searchDirection == "Right"):
-            ser.write(rightTick)
-            #move right a little bit
+    if(searchDirection == "Left"):
+        ser.write(leftTick)
+        #move left a little bit
+    if(searchDirection == "Right"):
+        ser.write(rightTick)
+        #move right a little bit
     return
 
 #function for navigating to the end node from start
 def navMove(navDirection, currentPoint):
-    if(navDirection == "Left"):
-        currentPoint[0] -= 1
-        ser.write(leftNode)
-    if(navDirection == "Right"):
-        currentPoint[0] += 1
-        ser.write(rightNode)
-    if(navDirection == "Up"):
-        currentPoint[1] += 1
-        ser.write(upNode)
-    if(navDirection == "Down"):
-        currentPoint[1] -= 1
-        ser.write(downNode)
+    if (readIRsensors() == True):
+        if(navDirection == "Left"):
+            currentPoint[0] -= 1
+            ser.write(leftNode)
+        if(navDirection == "Right"):
+            currentPoint[0] += 1
+            ser.write(rightNode)
+        if(navDirection == "Up"):
+            currentPoint[1] += 1
+            ser.write(upNode)
+        if(navDirection == "Down"):
+            currentPoint[1] -= 1
+            ser.write(downNode)
     return
 
 #function to pickup the package
