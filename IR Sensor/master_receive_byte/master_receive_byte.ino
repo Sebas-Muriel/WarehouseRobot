@@ -23,7 +23,7 @@ uint8_t tickIntersectionFLG = 0;
 time_t current, prev;
 
 char dir = '0';
-char mode = 0x40;
+char mode = 0x10;
 char reset = '0';
 uint8_t data;
 
@@ -70,14 +70,14 @@ void loop()
     // Receive the 'int' from I2C and print it:-
     if (Wire.available() >= 1){
         address1Val = Wire.read();
-        //Serial.println(address1Val,BIN);               
+        Serial.println(address1Val,BIN);               
     }
 
     Wire.requestFrom(SLAVE_ADDRESS2, 1);
 
     if (Wire.available() >= 1){
         address2Val = Wire.read();
-        //Serial.println(address2Val,BIN);                 
+        Serial.println(address2Val,BIN);                 
     }
 
     if (mode == nodeMode && reset != 0b10000000)
