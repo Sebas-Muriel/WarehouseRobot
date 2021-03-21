@@ -8,42 +8,55 @@ import time
 import serial
 import json
 import cv2
+import RPi.GPIO as GPIO
 
 
-leftTick = bytearray()
-leftTick.append(0x03)
-leftNode = bytearray()
-leftNode.append(0x02)
-rightTick = bytearray()
-rightTick.append(0x05)
-rightNode = bytearray()
-rightNode.append(0x04)
-upTick = bytearray()
-upTick.append(0x07)
-upNode = bytearray()
-upNode.append(0x06)
-downTick = bytearray()
-downTick.append(0x09)
-downNode = bytearray()
-downNode.append(0x08)
 stopTick = bytearray()
-stopTick.append(0x01)
-stopNode = bytearray()
-stopNode.append(0x00)
-reset = bytearray()
-reset.append(0x40)
+stopTick.append(0x02)
+leftTick = bytearray()
+leftTick.append(0x06)
+rightTick = bytearray()
+rightTick.append(0x0A)
+upTick = bytearray()
+upTick.append(0x0E)
+downTick = bytearray()
+downTick.append(0x12)
 
+stopNode = bytearray()
+stopNode.append(0x01)
+leftNode = bytearray()
+leftNode.append(0x05)
+rightNode = bytearray()
+rightNode.append(0x09)
+upNode = bytearray()
+upNode.append(0x0D)
+downNode = bytearray()
+downNode.append(0x11)
+
+reset = bytearray()
+reset.append(0x00)
+
+
+SRDY = 17 #yellow
+MRDY = 27 #orange
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
+
+
+
 firstFLG = 0
-START = "D2"
+START = "A3"
 startSerial = ""
 
 def main(package):
+    PinSetup()
+    time.sleep(2)
     myclient = MongoDBconnection()
+
     mydb = myclient["WarehouseMap"]
     mycol_packages = mydb["QRs"]
     mycol_nav = mydb["Navigation"]
+
     currentPoint = convertToGrid(START)
     endingPoint = CreatePath(mycol_nav, mycol_packages, package)
     print("Ending Point", endingPoint)
@@ -51,27 +64,18 @@ def main(package):
     #While loop reading the Intersections/QRs until it gets to the package. 
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
-
-    # QR = readQR()
-    # print(QR)
         
-
-    startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
-    while(startSerial != '20'):
-        #Decided which direction to go at start
-        if currentPoint[0] == endingPoint["End"][0]:
-            if currentPoint[1] != endingPoint["End"][1]:
-                if (currentPoint[1] > endingPoint["End"][1]):
-                    ser.write(downNode)
-                else:
-                    ser.write(upNode)
-        else:
-            if (currentPoint[0] > endingPoint["End"][0]):
-                ser.write(leftNode)
+    if currentPoint[0] == endingPoint["End"][0]:
+        if currentPoint[1] != endingPoint["End"][1]:
+            if (currentPoint[1] > endingPoint["End"][1]):
+                UART_send_repeat(downNode)
             else:
-                ser.write(rightNode)
-        startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(startSerial)
+                UART_send_repeat(upNode)
+    else:
+        if (currentPoint[0] > endingPoint["End"][0]):
+            UART_send_repeat(leftNode)
+        else:
+            UART_send_repeat(rightNode)
 
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
@@ -96,7 +100,7 @@ def main(package):
 
         print(currentPoint)
     #Tell Arduino to stop
-    ser.write(stopTick)
+    UART_send_repeat(stopTick)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
     searchMove(endingPoint["Direction"])
@@ -107,7 +111,7 @@ def main(package):
         # Move in the direcetino of the package
         searchMove(endingPoint["Direction"])
         if (readIRsensors() == True):
-            ser.write(stopTick)
+            UART_send_repeat(stopTick)
             QR = readQR()
             if (QR != "null"):
                 QR = json.loads(QR)
@@ -129,18 +133,19 @@ def main(package):
         
     #Reach the intersection
     print("Resetting")
-    ser.write(reset)
+    UART_send_repeat(reset)
 
     if (endingPoint["Direction"] == "Left"):
-        ser.write(leftNode)
+        UART_send_repeat(leftNode)
         while(readIRsensors() != True):
             pass
     else:
-        ser.write(rightNode)
+        UART_send_repeat(rightNode)
         while(readIRsensors() != True):
             pass
-    ser.write(stopTick)
-    ser.write(reset)
+
+    UART_send_repeat(stopTick)
+    UART_send_repeat(reset)
 
     startSerial = ""
     print("begining Going back to Start")
@@ -151,21 +156,19 @@ def main(package):
         currentPoint[0] += 1
 
     print("starting Point", currentPoint, "ending Point: ", endingPoint["End"])
-    while(startSerial != '20'):
-        #Decided which direction to go at start
-        if currentPoint[0] == endingPoint["End"][0]:
-            if currentPoint[1] != endingPoint["End"][1]:
-                if (currentPoint[1] > endingPoint["End"][1]):
-                    ser.write(downNode)
-                else:
-                    ser.write(upNode)
-        else:
-            if (currentPoint[0] > endingPoint["End"][0]):
-                ser.write(leftNode)
+
+    #Decided which direction to go at start
+    if currentPoint[0] == endingPoint["End"][0]:
+        if currentPoint[1] != endingPoint["End"][1]:
+            if (currentPoint[1] > endingPoint["End"][1]):
+                UART_send_repeat(downNode)
             else:
-                ser.write(rightNode)
-        startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(startSerial)
+                UART_send_repeat(upNode)
+    else:
+        if (currentPoint[0] > endingPoint["End"][0]):
+            UART_send_repeat(leftNode)
+        else:
+            UART_send_repeat(rightNode)
     
     Horizontal = True
 
@@ -192,8 +195,16 @@ def main(package):
 
         print(currentPoint)
     #Tell Arduino to stop
-    ser.write(stopTick)
+    UART_send_repeat(stopTick)
+    UART_send_repeat(reset)
     return
+
+def PinSetup():
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(MRDY, GPIO.OUT)
+    GPIO.setup(SRDY, GPIO.IN)
+    GPIO.output(MRDY, GPIO.HIGH)
 
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -310,11 +321,9 @@ def readQR():
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):
     if(searchDirection == "Left"):
-        ser.write(leftTick)
-        #move left a little bit
+        UART_send_repeat(leftTick)
     if(searchDirection == "Right"):
-        ser.write(rightTick)
-        #move right a little bit
+        UART_send_repeat(rightTick)
     return
 
 #function for navigating to the end node from start
@@ -322,16 +331,39 @@ def navMove(navDirection, currentPoint):
     if (readIRsensors() == True):
         if(navDirection == "Left"):
             currentPoint[0] -= 1
-            ser.write(leftNode)
+            UART_send_repeat(leftNode)
         if(navDirection == "Right"):
             currentPoint[0] += 1
-            ser.write(rightNode)
+            UART_send_repeat(rightNode)
         if(navDirection == "Up"):
             currentPoint[1] += 1
-            ser.write(upNode)
+            UART_send_repeat(upNode)
         if(navDirection == "Down"):
             currentPoint[1] -= 1
-            ser.write(downNode)
+            UART_send_repeat(downNode)
+    return
+
+def UART_send(message):
+    GPIO.output(MRDY, GPIO.LOW)
+    while(GPIO.input(SRDY) == GPIO.HIGH):
+        pass
+    ser.write(message)
+    GPIO.output(MRDY, GPIO.HIGH)
+    while(GPIO.input(SRDY) == GPIO.LOW):
+        pass
+    return
+
+def UART_send_repeat(message):
+    count = 0
+    startTime = time.time()
+    while(1):
+        currentTime = time.time()
+        if (currentTime - startTime > .001):
+            count = count + 1
+            UART_send(message)
+            startTime = time.time()
+        if count == 3:
+            break
     return
 
 #function to pickup the package
