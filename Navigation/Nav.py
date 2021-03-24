@@ -45,7 +45,7 @@ ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 
 
 firstFLG = 0
-START = "A3"
+START = "C3"
 startSerial = ""
 
 def main(package):
@@ -64,7 +64,9 @@ def main(package):
     #While loop reading the Intersections/QRs until it gets to the package. 
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
-        
+    
+    count = 0
+
     if currentPoint[0] == endingPoint["End"][0]:
         if currentPoint[1] != endingPoint["End"][1]:
             if (currentPoint[1] > endingPoint["End"][1]):
@@ -96,6 +98,12 @@ def main(package):
                 navMove("Up", currentPoint)
 
         if currentPoint[0] == endingPoint["End"][0]:
+            if count == 0:
+                if (currentPoint[1] > endingPoint["End"][1]):
+                    UART_send_repeat(downNode)
+                else:
+                    UART_send_repeat(upNode)
+            count = count + 1
             Horizontal = False
 
         print(currentPoint)
@@ -171,7 +179,7 @@ def main(package):
             UART_send_repeat(rightNode)
     
     Horizontal = True
-
+    count = 0
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False
@@ -182,15 +190,22 @@ def main(package):
             if (currentPoint[0] > endingPoint["End"][0]):
                 navMove("Left", currentPoint)
             else:
-                navMove("Right", currentPoint)
+                navMove("Right", currentPoint)   #3.1
         else:
             #Go Vertically  
             if (currentPoint[1] > endingPoint["End"][1]):
                 navMove("Down", currentPoint)
             else:
+                print("Going up")
                 navMove("Up", currentPoint)
 
         if currentPoint[0] == endingPoint["End"][0]:
+            if count == 0:
+                if (currentPoint[1] > endingPoint["End"][1]):
+                    UART_send_repeat(downNode)
+                else:
+                    UART_send_repeat(upNode)
+                count = count + 1
             Horizontal = False
 
         print(currentPoint)
@@ -362,7 +377,7 @@ def UART_send_repeat(message):
             count = count + 1
             UART_send(message)
             startTime = time.time()
-        if count == 3:
+        if count == 4:
             break
     return
 
