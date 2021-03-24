@@ -15,6 +15,12 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
   float: left;
   width: 20%;
 }
+.pagecenter{
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1000px;
+  float: none;
+}
 a.button {
     -webkit-appearance: button;
     -moz-appearance: button;
@@ -47,12 +53,11 @@ a.button {
 <div class="w3-top">
   <div class="w3-bar w3-blue w3-card w3-left-align w3-large">
     <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-    <a href="#" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
-    <a href="#Abstract" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Abstract</a>
-    <a href="#MeetTeam" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Meet The Team</a>
-    <a href="#Files" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Files</a>
+    <a href="index.html" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+    <a href="index.html#Abstract" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Abstract</a>
+    <a href="index.html#MeetTeam" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Meet The Team</a>
+    <a href="index.html#Files" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Files</a>
     <a href="Project.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-blue">Project</a>
-    <a href="http://localhost:3000" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-blue">User</a>
   </div>
 
   <!-- Navbar on small screens -->
@@ -61,12 +66,15 @@ a.button {
     <a href="#MeetTeam" class="w3-bar-item w3-button  w3-padding-large w3-hover-white">Meet The Team</a>
     <a href="#Files" class="w3-bar-item w3-button  w3-padding-large w3-hover-white">Files</a>
     <a href="Project.html" class="w3-bar-item w3-button w3-padding-large w3-blue">Project</a>
-    <a href="http://localhost:3000" class="w3-bar-item w3-button w3-padding-large w3-blue">User</a>
   </div>
 </div>
 
 <!-- Header -->
-<header class="w3-container w3-light-grey w3-center" style="padding:128px 16px">
+<header class="w3-container w3-blue w3-center" style="padding:150px 16px; 
+  background-image: url(./images/Robot.png);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100% 100%;">
   <h1 class="w3-margin w3-jumbo">Project</h1>
 </header>
 
@@ -74,28 +82,126 @@ a.button {
 <div class="w3-row-padding w3-white w3-padding-64 w3-container w3-center">
   <h1>Curerent and Future Work</h1>
   <div class = "w3-center w3-padding w3-padding-32">
-    <img style = "width: 70%" src="./GanttChart.PNG" alt="GANTT Chart">
+    <img style = "width: 70%" src="./images/GanttChart.PNG" alt="GANTT Chart">
   </div>
+  <p1 class = "w3-center w3-text-black">ECE/EE GANTT Chart</p1>  
+  <div class = "w3-center w3-padding w3-padding-32">
+    <img style = "width: 70%" src="./images/ME GanttChart.PNG" alt="GANTT Chart">
+  </div>
+  <p1 class = "w3-center w3-text-black">ME GANTT Chart</p1>  
 </div>
 
-<div class="w3-row-padding w3-light-grey w3-padding-64 w3-container w3-center">
+<div class="w3-row-padding w3-blue w3-padding-64 w3-container w3-center">
   <h1>Project Information</h1>
 </div>
 
-<!-- <div class="w3-row-padding w3-white w3-padding-64 w3-container w3-center">
-  <h1>Future Work</h1>
-</div> -->
+<div class="w3-row-padding w3-light-grey w3-padding-32 w3-container w3-center">
+  <h1>NodeJS Server</h1>
+  <p class = "w3-center pagecenter">
+    The necessary requirements to start the NodeJS server are inside the GitHub under UserInput. 
+    The readme has all the requirements for starting the server on the Pi and on Windows. 
+    You need to have a database called WarehouseMap for the server to connect to MongoDB. 
+    The server uses the express library for post and gets throughout the code. In the html it has 
+    buttons/submits to take the user to the different webpages, each that have their own function 
+    on the server. These can be seen in the code with the …/”name”. Most of the html documents are 
+    given inside the UserInput folder. The server also calls python scripts as well.
+    Under the …/test webpage there is an example of how to call a script someone made.
+  </p>
+</div>
+
+<div class="w3-row-padding w3-white w3-padding-32 w3-container w3-center">
+  <h1>IR Sensors</h1>
+  <p class = "w3-center pagecenter">
+    The IR sensors are connected to an Arduino Nano. They use the QTR sensor library and the Wire.h 
+    library. The Arduino Nano reads in the data from the sensors then converts the 8 IR sensors into 
+    an 8-bit number that is sent to the Motor Controller using I2C. The address is defined at the top 
+    of the code if another slave needs to be added to the I2C changing the address must be done.
+  </p>
+</div>
+
+<div class="w3-row-padding w3-light-grey w3-padding-32 w3-container w3-center">
+  <h1>Motor Controller</h1>
+  <p class = "w3-center pagecenter">
+    The motor controller reads in the IR sensor 8-bit number and then converts that to an error 
+    specified. This error is then used for the PID controls to follow the line. The Motor controller 
+    is also connected to the PI via pseudo-handshake. The Arduino only handshakes the receiving data 
+    from the PI. The output data is just sent as is with a new line. The received data is a set of 
+    instructions that tell the motor controller the direction, mode, and lift for the forklift. These 
+    are described in the diagram below.
+  </p>
+  <div class = "w3-center">
+    <h5 class = "w3-text-black"><u>Payload Diagram</u></h5>
+    <img style = "width: 50%; height:50%;" src="./images/PayloadExample.png" alt="Payload">
+  </div>
+</div>
+
+<div class="w3-row-padding w3-white w3-padding-32 w3-container w3-center">
+  <h1>MongoDB</h1>
+  <p class = "w3-center pagecenter">
+    Inside MongoDB there are two collections, Navigation and QRs. Navigation is formatted in the 
+    picture below. These data points are used in the python scripts to find where the package is. 
+    They are updated in MongoDB from the training/calibration script. In Navigation the null means 
+    that there is no path in that direction.
+  </p>
+  <div class="w3-row-padding w3-white w3-container w3-center w3-half">
+    <div class = "w3-center">
+      <h5 class = "w3-text-black">Example QR Collection</h5>
+      <img src="./images/MongoCol1.png" alt="Payload">
+    </div>
+  </div>
+  <div class = "w3-center w3-rest">
+    <h5 class = "w3-text-black">Example Navigation Collection</h5>
+    <img src="./images/MongoCol2.png" alt="Payload">
+  </div>
+</div>
+
+
+<div class="w3-row-padding w3-light-grey w3-padding-32 w3-container w3-center">
+  <h1>Python Scripts</h1>
+  <p class = "w3-center pagecenter">
+    The python scripts send directions/modes/actions to the motor controller for what it is 
+    supposed to do. It connects to MongoDB to either add documents to the database or create/update 
+    documents to the database. The python scripts also read from the motor controller whenever it 
+    encounters a tick or node. A tick is half of the IR sensor being covered while a node is the entire 
+    IR sensor being covered. Node travel is used for getting to the correct horizontal section while tick 
+    travel is used for precise movement between nodes. Inside the python scripts the value “A2” is 
+    converted into a grid form [1,2]. Then that value is used to calculate the shortest distance if we 
+    are picking up a package.
+  </p>
+  <div class="w3-row-padding w3-light-grey w3-container w3-center">
+    <h5 class= "w3-center">Highlevel Flowchart</h5>
+    <img src = "./images/TopLevel.png" alt = toplevel>
+  </div>
+  <div class="w3-row-padding w3-light-grey w3-container w3-center w3-half">
+    <h5 class= "w3-center">Training/Calibration Flowchart</h5>
+    <img src = "./images/Training.png" alt = toplevel>
+  </div>
+  <div class="w3-row-padding w3-light-grey w3-container w3-center w3-half">
+    <h5 class= "w3-center">Pick-up Flowchart</h5>
+    <img src = "./images/Pickup.png" alt = toplevel>
+  </div>
+</div>
+
+
+
+<div class="w3-row-padding w3-white w3-padding-32 w3-container w3-center">
+  <h1>Warehouse Setup</h1>
+  <p class= "w3-center pagecenter">
+    The warehouse is a uniform grid with lines extending outwards from the nodes. 
+    Between each node there are a set number of ticks that lead to boxes. The boxes 
+    have QR codes attached to them, and during training/calibration scripts there are 
+    QR codes placed at each intersection. 
+  </p>
+  <h5>2x2 Warehouse (Packages are Orange)</h5>
+  <img src = "./images/Warehouse.png" alt = warehouse>
+</div>
 
 <!-- Footer -->
 <footer class="w3-container w3-padding-16 w3-center w3-blue">  
-  <div class="w3-xlarge ">
-    <i class="fa fa-facebook-official w3-hover-opacity"></i>
-    <i class="fa fa-instagram w3-hover-opacity"></i>
-    <i class="fa fa-snapchat w3-hover-opacity"></i>
-    <i class="fa fa-pinterest-p w3-hover-opacity"></i>
-    <i class="fa fa-twitter w3-hover-opacity"></i>
-    <i class="fa fa-linkedin w3-hover-opacity"></i>
- </div>
+  <h1>GitHub</h1>
+  <p class = "w3-center">
+  <a href="url">https://github.com/Sebas-Muriel/WarehouseRobot</a>
+  </p>
 </footer>
 
 <script>
