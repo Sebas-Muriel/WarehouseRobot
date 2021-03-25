@@ -71,7 +71,7 @@ def main(package):
                 item["Item"] = "Test1" #read from QR
                 #Append item JSON to the whole list
                 mycol_packages.insert_one(item)
-                #itemsList.append(item)
+                #itemsList.append(item)#
                 #move motor up to the next level
         if count == 4:
             readQR = 0 #read the node qr
