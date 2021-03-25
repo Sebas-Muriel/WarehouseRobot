@@ -23,12 +23,18 @@
 #define MRDY 0x02
 #define SRDY 0x03
 
+//defines for Motor Movement
+#define MOTOR_LEVEL1 0x00
+#define MOTOR_LEVEL2 0x01
+#define MOTOR_LIFT 0x02
+
 #define LED_LEFT 10
 #define LED_RIGHT 11
 #define LED_UP 12
 #define LED_DOWN 13
 #define LED_MODE_BIT0 8
 #define LED_MODE_BIT1 9
+
 
 uint8_t address1Val = 0;
 uint8_t address2Val = 0;
@@ -39,12 +45,14 @@ uint8_t dir = STOP;
 uint8_t mode = RESET_MODE;
 uint8_t UART_RX;
 uint8_t MRDY_VAL;
-uint8_t sending = 0, recieving = 0;
-
+uint8_t motor = MOTOR_LEVEL1;
+uint8_t addr2Arr[8];
 
 void getIRData(int SLAVE_ADDRESS, int rec_data);
 void UART_REC();
 void UART_TX(uint8_t message);
+void binToArray(uint8_t bin, uint8_t * arr);
+void IR_PID(uint8_t *arr);
 void setup() {
   Serial.begin(9600);
   Wire.begin();
@@ -77,13 +85,24 @@ void loop() {
 
     if (Wire.available() >= 1){
         address2Val = Wire.read();
+        Serial.println(address2Val, BIN);
+        binToArray(address2Val, addr2Arr);
+        for(int i =0 ; i < 8; i++)
+        {
+          Serial.print("[");
+          Serial.print(i);
+          Serial.print("] ");
+          Serial.println(addr2Arr[i]);
+        }
         //Serial.println(address2Val,BIN);                 
     }
+    delay(2000);
   if (mode == RESET_MODE)
   {
     dir = STOP;
     NodeIntersectionFLG = 1;
     TickIntersectionFLG = 1;
+    motor = MOTOR_LEVEL1;
   }
   else if(mode == NODE_MODE)
   {
@@ -98,15 +117,32 @@ void loop() {
   }
   else if(mode == TICK_MODE)
   {
-     if ((address2Val == 0b11110000 || address2Val == 0b11111000) && TickIntersectionFLG == 0)
-      {
-        TickIntersectionFLG = 1;
-        UART_TX('1');
-      }
-        
-      if (address2Val != 0xF8 && address2Val != 0xF0){
-        TickIntersectionFLG = 0;
-      }
+    if ((address2Val == 0b11110000 || address2Val == 0b11111000) && TickIntersectionFLG == 0)
+    {
+      TickIntersectionFLG = 1;
+      UART_TX('1');
+    }
+    
+    if (address2Val != 0xF8 && address2Val != 0xF0){
+      TickIntersectionFLG = 0;
+    }
+
+    if (motor == MOTOR_LEVEL1)
+    {
+      //bring motor to level1
+      //use encoder and if the value is at the correct value then don't move
+    }
+    else if(motor == MOTOR_LEVEL2)
+    {
+      //bring motor to level2
+      //use encoder and if the value is at the correct value then don't move
+    }
+    else if(motor == MOTOR_LIFT)
+    {
+      //use the current encoder value and lift it up a certain distance
+    }
+      
+    
   }
 
 }
@@ -143,6 +179,42 @@ void LED_ALL_OFF()
   digitalWrite(LED_DOWN, HIGH);
   digitalWrite(LED_MODE_BIT0, HIGH);
   digitalWrite(LED_MODE_BIT1, HIGH);
+}
+
+void binToArray(uint8_t bin, uint8_t * arr)
+{
+  uint8_t mask = 1;
+  uint8_t revArr[8];
+  for (int i = 0, j =7; i < 8; i++)
+  {
+    arr[j] = (bin&mask)>>i;
+    mask = mask<<1;
+    j--;
+  }
+}
+
+void IR_PID(uint8_t *arr)
+{
+  int16_t error = 0;
+  int16_t sum = 0;
+  for (int i =0 ;i < 8; i++)
+  {
+    if(arr[i] == 1)
+    {
+      switch(i)
+      {
+        case 0: sum+= 0; break;
+        case 1: sum+= -2; break;
+        case 2: sum+= -1; break;
+        case 3: sum += 0; break;
+        case 4: sum += 0; break;
+        case 5: sum += 1; break;
+        case 6: sum += 2; break;
+        case 7: sum += 0; break;
+      }
+    }
+  }
+  
 }
 
 void LEDControl()
