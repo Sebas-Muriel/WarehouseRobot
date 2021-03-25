@@ -43,6 +43,11 @@ def main(package):
     mydb = myclient["WarehouseMap"]
     mycol_packages = mydb["QRs"]
     mycol_nav = mydb["Navigation"]
+
+    mycol_nav.drop()
+    mycol_packages.drop()
+    mycol_nav.insert_many(insertGrid(3,3))
+
     readQR = dict()
     itemsList = list(dict())
     item = dict()
@@ -110,6 +115,36 @@ def MongoDBconnection():
     mydb = myclient["WarehouseMap"]
     print(mydb.list_collection_names())
     return myclient
+
+def insertGrid(numCol, numRow):
+    mongoInput = list(dict())
+    item = dict()
+
+    for i in range(1, numRow + 2):
+        for j in range(1,numCol + 2):
+            item["Name"] = str(chr(ord('@') + i)) + str(j)
+            if j == 1:
+                item["Down"] = "null"  
+            else:
+                item["Down"] = str(chr(ord('@') + (i) )) + str(j-1)
+
+            if i == 1:
+                item["Left"] = "null" 
+            else:
+                item["Left"] = str(chr(ord('@') + i-1)) + str(j)
+
+            if j == numCol + 1:
+                item["Up"] = "null"
+            else:
+                item["Up"] = str(chr(ord('@') + i)) + str(j+1)
+
+            if i == numRow + 1:
+                item["Right"] = "null"
+            else:
+                item["Right"] = str(chr(ord('@') + (i+1) )) + str(j)
+
+            mongoInput.append(dict(item))
+    return mongoInput
 
 def readIRsensors():
     read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
