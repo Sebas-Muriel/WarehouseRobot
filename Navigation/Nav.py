@@ -371,6 +371,14 @@ def UART_send(message):
 def UART_send_repeat(message):
     count = 0
     startTime = time.time()
+    endTime = distance*0.5 / velocity 
+
+    while(1):
+        currentTime = time.time()
+        if currentTime-startTime == endTime:
+            break
+    startTime = time.time()
+    
     while(1):
         currentTime = time.time()
         if (currentTime - startTime > .001):

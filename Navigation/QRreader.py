@@ -21,7 +21,6 @@ while True:
                     0.5, (0, 255, 0), 2)
         if data:
             print("data found: ", data)
-            return data
     # display the image preview
     cv2.imshow("code detector", img)
     if(cv2.waitKey(1) == ord("q")):

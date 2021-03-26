@@ -43,34 +43,12 @@ def main(package):
     mydb = myclient["WarehouseMap"]
     mycol_packages = mydb["QRs"]
     mycol_nav = mydb["Navigation"]
-  
 
-    item = dict()
-    x = str(ord('@')+1)
-    print(x)
+    mycol_nav.drop()
+    mycol_packages.drop()
+    mycol_nav.insert_many(insertGrid(3,3))
+    return
 
-    int numRow
-    int numCol
-    
-
-    for i in range(1, numRow + 1):
-        for j in range(1,numCol + 1) :
-            if(i==1) :
-                item["Down"] = "null"  
-            else:
-                item["Down"] = str(ord('@')+ (i-1)) + str(j)
-              
-            if(j==1):
-                item["Left"] = "null"
-
-            if(i==numCol+1):
-                item["Up"] = str(ord('@')+ i) + str(j))
-
-            if(i==numRow + 1):
-                item["Right"] = str(ord('@')+ i) + str(j)
-            else:
-                item[""]
-            
         
    
 
@@ -86,6 +64,35 @@ def MongoDBconnection():
     print(mydb.list_collection_names())
     return myclient
 
+def insertGrid(numCol, numRow):
+    mongoInput = list(dict())
+    item = dict()
+
+    for i in range(1, numRow + 2):
+        for j in range(1,numCol + 2):
+            item["Name"] = str(chr(ord('@') + i)) + str(j)
+            if j == 1:
+                item["Down"] = "null"  
+            else:
+                item["Down"] = str(chr(ord('@') + (i) )) + str(j-1)
+
+            if i == 1:
+                item["Left"] = "null" 
+            else:
+                item["Left"] = str(chr(ord('@') + i-1)) + str(j)
+
+            if j == numCol + 1:
+                item["Up"] = "null"
+            else:
+                item["Up"] = str(chr(ord('@') + i)) + str(j+1)
+
+            if i == numRow + 1:
+                item["Right"] = "null"
+            else:
+                item["Right"] = str(chr(ord('@') + (i+1) )) + str(j)
+
+            mongoInput.append(dict(item))
+    return mongoInput
 
 #Breaks up the node into the letters and numbers and returns a list
 def splitNode(node):
