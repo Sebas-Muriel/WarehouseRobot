@@ -56,89 +56,61 @@ void setup() {
 }
 
 void loop() { 
-  
     // Get IR sensor Data
-    Wire.requestFrom(I2C_UP_DOWN, 2);     
-    if (Wire.available() >= 1){
-      for (int i = 0; i < 2; i++)
-        I2C_Vertical[0] = Wire.read();
+//    Wire.requestFrom(I2C_UP_DOWN, 2);     
+//    if (Wire.available() >= 1){
+//      for (int i = 0; i < 2; i++)
+//        I2C_Vertical[0] = Wire.read();
+//
+//      binToArray(I2C_Vertical[0], v_up);
+//      binToArray(I2C_Vertical[1], v_down);
+//    }
+//
+//    Wire.requestFrom(I2C_LEFT_RIGHT, 2);
+//    if (Wire.available() >= 1){
+//      for (int i = 0; i < 2; i++)
+//        I2C_Horizontal[i] = Wire.read();
+//        
+//      binToArray(I2C_Horizontal[0], h_left);
+//      binToArray(I2C_Horizontal[1], h_right);                 
+//    }
 
-      binToArray(I2C_Vertical[0], v_up);
-      binToArray(I2C_Vertical[1], v_down);
-    }
-
-    Wire.requestFrom(I2C_LEFT_RIGHT, 2);
-    if (Wire.available() >= 1){
-      for (int i = 0; i < 2; i++)
-        I2C_Horizontal[i] = Wire.read();
-        
-      binToArray(I2C_Horizontal[0], h_left);
-      binToArray(I2C_Horizontal[1], h_right);                 
-    }
+//    switch(dir)
+//    {
+//      case UP:    IR_PID(v_up,v_down); break;
+//      case DOWN:  IR_PID(v_down,v_up); break;
+//      case LEFT:  IR_PID(h_left, h_right); break;
+//      case RIGHT: IR_PID(h_right,h_left); break;
+//    }
 
     switch(dir)
     {
-      case UP:    IR_PID(v_up,v_down); break;
-      case DOWN:  IR_PID(v_down,v_up); break;
-      case LEFT:  IR_PID(h_left, h_right); break;
-      case RIGHT: IR_PID(h_right,h_left); break;
+      case UP:    moveUp(); break;
+      case DOWN:  moveDown(); break;
+      case LEFT:  moveLeft(); break;
+      case RIGHT: moveRight(); break;
     }
-    
-    delay(2000);
-  if (mode == RESET_MODE)
-  {
-    dir = STOP;
-    NodeIntersectionFLG = 1;
-    TickIntersectionFLG = 1;
-    motor = MOTOR_LEVEL1;
-  }
-  else if(mode == NODE_MODE)
-  {
-    if ((address2Val[0] == 0xFF || address1Val[0] == 0xFF) && NodeIntersectionFLG == 0){
-      NodeIntersectionFLG = 1;
-      UART_TX('1');
-    }
+}
 
-    if (address2Val[0] != 0xFF){
-      NodeIntersectionFLG = 0;
-    }
-  }
-  else if(mode == TICK_MODE)
-  {
-    if ((address2Val[0] == 0b11110000 || address2Val[0] == 0b11111000) && TickIntersectionFLG == 0)
-    {
-      TickIntersectionFLG = 1;
-      UART_TX('1');
-    }
-    
-    if (address2Val[0] != 0xF8 && address2Val[0] != 0xF0){
-      TickIntersectionFLG = 0;
-    }
-
-    if (motor == MOTOR_LEVEL1)
-    {
-      //bring motor to level1
-      //use encoder and if the value is at the correct value then don't move
-    }
-    else if(motor == MOTOR_LEVEL2)
-    {
-      //bring motor to level2
-      //use encoder and if the value is at the correct value then don't move
-    }
-    else if(motor == MOTOR_LIFT)
-    {
-      //use the current encoder value and lift it up a certain distance
-    }
-      
-    
-  }
-
+void moveUp()
+{
+  return;
+}
+void moveDown()
+{
+  return;
+}
+void moveLeft()
+{
+  return;
+}
+void moveRight()
+{
+  return;
 }
 
 void UART_REC()
 {
-  digitalWrite(LED_MODE_BIT0, LOW);
-  digitalWrite(LED_MODE_BIT1, LOW);
   
   digitalWrite(SRDY, LOW);
   
