@@ -15,8 +15,8 @@
 #define UP 0x03
 #define DOWN 0x04
 
-//Defines for Modes
 #define RESET_MODE 0x00
+//Defines for Modes 
 #define NODE_MODE 0x01
 #define TICK_MODE 0x02
 
