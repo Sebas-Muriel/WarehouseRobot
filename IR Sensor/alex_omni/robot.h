@@ -3,11 +3,12 @@
 void pwm_init(void);                                     
 void pwm_set_duty(int channel, int duty);     
 void command_motor(int channel, int duty);    
-void fwdKinematics(void);                     
-void invKinematics(void);                     
+void fwdKinematics(void);        
+float IR_PID(uint8_t *frontSensor);             
+void invKinematics(uint8_t *arr);               
 void timer_init(void);                        
 void GetCurrentStatus(void);                  
-void Motor_Control(void);                     
+void Motor_Control(uint8_t *arr);                     
 
 // Encoder Functions
 void encoder1CHB(void);   
@@ -578,10 +579,49 @@ void fwdKinematics(void){
  
 }
 
+float IR_PID(uint8_t *frontSensor)
+{
+  int16_t error = 0;
+  float sum = 0;
+  float P =0, I =0, U =0;
+  float kp = .1, ki = .1;
+  for (int i =0 ;i < 8; i++)
+  {
+    if(frontSensor[i] == 1)
+    {
+      switch(i)
+      {
+        case 0: sum+= 1.5; break;
+        case 1: sum+= 1; break;
+        case 2: sum+= .5; break;
+        case 3: sum += 0; break;
+        case 4: sum += 0; break;
+        case 5: sum += -.5; break;
+        case 6: sum += -1; break;
+        case 7: sum += -1.5; break;
+      }
+    }
+  }
+  P = sum;
+  I = I + P;
+  U = P*kp;
+  return U;
+
+}
+
 
 // determines the desired angular velocities of each wheel to reach the specified speed in the main loop
-void invKinematics(void){
-  
+void invKinematics(uint8_t *arr){
+  float U = IR_PID(arr);
+  if ( U > .25) U = .25;
+  if (U < -.25) U = -.25;
+
+  // update desired robot angular velocity
+ // Serial.println(U);
+//  des_robot_vel[2] = U;
+  des_robot_vel[1] = -U;
+//  des_robot_vel[0] = des_robot_vel[0] - U;
+
   des_joint_vel[0] = (1/wheelRad)*( des_robot_vel[0]*cos(pi/4.0) - des_robot_vel[1]*sin(pi/4.0) + R*des_robot_vel[2]); // front left wheel  (omega 1)
   des_joint_vel[1] = (1/wheelRad)*(-des_robot_vel[0]*cos(pi/4.0) - des_robot_vel[1]*sin(pi/4.0) + R*des_robot_vel[2]); // front right wheel (omega 2)
   des_joint_vel[2] = (1/wheelRad)*(-des_robot_vel[0]*cos(pi/4.0) + des_robot_vel[1]*sin(pi/4.0) + R*des_robot_vel[2]); // back right wheel  (omega 3)
@@ -597,12 +637,12 @@ void invKinematics(void){
 
 
 
-void  Motor_Control(void) {
+void  Motor_Control(uint8_t *arr) {
 
   int i;
     
   // map desired robot velocities to desired wheel velocities
-  invKinematics();
+  invKinematics(arr);
 
   // PD control Law
   for(i = 0;i<4;i++){
