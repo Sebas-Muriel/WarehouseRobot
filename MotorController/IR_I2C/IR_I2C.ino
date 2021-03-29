@@ -7,9 +7,8 @@ QTRSensors qtr4;
 
 #define SLAVE_ADDRESS 0x09
 const uint8_t SensorCount = 8;
-uint16_t sensorValuesUp[SensorCount], sensorValuesBack[SensorCount], sensorValuesLeft[SensorCount], sensorValuesRight[SensorCount];
-uint8_t value = 5;
-byte I2Cbuffer[4];
+uint16_t sensorValuesUp[SensorCount], sensorValuesDown[SensorCount], sensorValuesLeft[SensorCount], sensorValuesRight[SensorCount];
+byte I2Cbuffer[4] = {0,0,0,0};
 
 
 uint8_t readSensors(uint16_t values[]);
@@ -42,12 +41,12 @@ void loop()
 {
   // read raw sensor values
   qtr.read(sensorValuesUp);
-//  qtr2.read(sensorValuesBack);
+//  qtr2.read(sensorValuesDown);
 //  qtr3.read(sensorValuesLeft);
 //  qtr4.read(sensorValuesRight);
   
   I2Cbuffer[0] = readSensors(sensorValuesUp);
-  //I2Cbuffer[1] = readSensors(sensorValuesBack);
+  //I2Cbuffer[1] = readSensors(sensorValuesDown);
   //I2Cbuffer[2] = readSensors(sensorValuesLeft);
   //I2Cbuffer[3] = readSensors(sensorValuesRight);
   
@@ -55,13 +54,17 @@ void loop()
   // print the sensor values as numbers from 0 to 2500, where 0 means maximum
   // reflectance and 2500 means minimum reflectance
   for (uint8_t i = 0; i < SensorCount; i++)
-  {
-    Serial.print(sensorValuesUp[i]);
-    Serial.print('\t');
-  }
-  Serial.println();
-  Serial.print(I2Cbuffer[0], BIN);
-  Serial.println();
+    {Serial.print("Up:\t"); Serial.print(sensorValuesUp[i]); Serial.println('\t');}
+  for (uint8_t i = 0; i < SensorCount; i++)
+    {Serial.print("Down:\t"); Serial.print(sensorValuesDown[i]); Serial.println('\t');}
+  for (uint8_t i = 0; i < SensorCount; i++)
+    {Serial.print("Left:\t"); Serial.print(sensorValuesLeft[i]); Serial.println('\t');}
+  for (uint8_t i = 0; i < SensorCount; i++)
+    {Serial.print("Right:\t"); Serial.print(sensorValuesRight[i]); Serial.println('\t');}
+    
+//  Serial.println();
+//  Serial.print(I2Cbuffer[0], BIN);
+//  Serial.println();
   delay(100);
 
 }
