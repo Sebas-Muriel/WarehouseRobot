@@ -32,8 +32,8 @@ unsigned long ticks = 0;
 
 float goal[2] = {5.0, 0.0};
 
-float vxMax = 0.25;
-float vyMax = 0.25;
+float vxMax = 0.15;
+float vyMax = 0.15;
 float thetaDotMax = 1.00;
 
 float count = 1;
@@ -55,8 +55,9 @@ uint8_t MRDY_VAL;
 void UART_REC();
 void binToArray(uint8_t bin, uint8_t * arr);
 void UART_TX(uint8_t message);
-void Control (uint8_t *arr, char d);
+void Control (uint8_t *front, char d, uint8_t *back);
 void CopyArr(uint8_t *src, uint8_t *des);
+bool lineLogic(uint8_t IR_Sens);
 void setup() {
   Serial.begin(9600);
   Wire.begin();
@@ -131,7 +132,7 @@ count++;
 
 /*************************  Control Function        ***************************/
 
-void Control (uint8_t *arr, char d)
+void Control (uint8_t *front, char d, uint8_t *back)
 {
   int flagRad; // flag to decide the type of required turn
 
@@ -142,7 +143,7 @@ void Control (uint8_t *arr, char d)
   }
 
   GetCurrentStatus();
-  Motor_Control(arr, d);
+  Motor_Control(front, d, back);
   ticks++;
   
 
@@ -172,12 +173,25 @@ void UART_TX(char message)
 void binToArray(uint8_t bin, uint8_t * arr)
 {
   uint8_t mask = 1;
-  uint8_t revArr[8];
+  uint8_t tester[8] = {0,0,0,1,1,0,0,0};
+  uint8_t count = 0;
+
   for (int i = 0, j =7; i < 8; i++)
   {
     arr[j] = (bin&mask)>>i;
     mask = mask<<1;
     j--;
+  }
+
+  for (int i = 2; i < 6; i++)
+  {
+    if (arr[i] == tester[i])
+      count++;
+  }
+  if (count == 4)
+  {
+    for (int i =0 ; i < 8; i++)
+      arr[i] = tester[i];
   }
 }
 
@@ -187,6 +201,16 @@ void CopyArr(uint8_t *src, uint8_t *des)
   {
     des[i] = src[i];
   }
+}
+
+bool lineLogic(uint8_t IR_Sens)
+{
+  for (int i =0 ; i < 16; i++)
+  {
+    if (IR_Sens == (0xf0 + i) || IR_Sens == (0xE0 + i))
+      return true;
+  }
+  return false;
 }
 /*****************************************************************************/
 // 100 Hz timer
@@ -223,6 +247,8 @@ void TC3_Handler()
   if (mode == RESET_MODE)
   {
     dir = STOP;
+    for (int i =0 ; i < 8; i++)
+      s_stop[i] = 0;
     NodeIntersectionFLG = 0;
     TickIntersectionFLG = 0;
     //motor = MOTOR_LEVEL1;
@@ -241,7 +267,7 @@ void TC3_Handler()
       //Start Stopping process once a black line is hit
       if ((I2C_IR_Values[2] == 0xFF || I2C_IR_Values[2] == 0xFE || I2C_IR_Values[2] == 0x7F) && NodeIntersectionFLG == 0)
       {
-        xposStart = robot_pos[1];
+        xposStart = robot_pos[1];                         
         NodeIntersectionFLG = 1;
       }
       //Ignore Ticks
@@ -252,47 +278,48 @@ void TC3_Handler()
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (xposCurrent - xposStart >= ((robotLength + .2)/ 2.5) && NodeIntersectionFLG == 1)
+      if (xposCurrent - xposStart >= ((robotLength)/ 2) && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_left, s_stop);
-        UART_TX('1');
+        UART_TX('1'); 
       }
     }
     else if(dir == RIGHT)
     {
       //Start Stopping process once a black line is hit
-      if ((I2C_IR_Values[3] == 0xFF || I2C_IR_Values[3] == 0xFE || I2C_IR_Values[3] == 0x7F) && NodeIntersectionFLG == 0)
+      if (I2C_IR_Values[3] == 0xFF /*|| I2C_IR_Values[3] == 0xFE || I2C_IR_Values[3] == 0x7F)*/ && NodeIntersectionFLG == 0)
       {
-        xposStart = robot_pos[1];
+        xposStart = robot_pos[1];                                                                                           
         NodeIntersectionFLG = 1;
       }
       //Ignore Ticks
-      if (I2C_IR_Values[3] == 0x1F || I2C_IR_Values[3] == 0x0E || I2C_IR_Values[3] == 0x0F)
+      if (I2C_IR_Values[3] <= 0x1F)
       {
+//        UART_TX('1');
         I2C_IR_Values[3] = 0b00011000;
         binToArray(I2C_IR_Values[3], h_right);
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(xposCurrent) - abs(xposStart) >=  ((robotLength + .5)/ 2) && NodeIntersectionFLG == 1)
+      if (abs(xposCurrent) - abs(xposStart) >=  ((robotLength)/2) && NodeIntersectionFLG == 1)
       {
-        dir = STOP;
-        CopyArr(h_right, s_stop);
+//        dir = STOP;
+//        CopyArr(h_right, s_stop);
         UART_TX('1');
       }   
     }
     else if(dir == UP)
     {
       //Start Stopping process once a black line is hit
-      if ((I2C_IR_Values[0] == 0xFF || I2C_IR_Values[0] == 0xFE || I2C_IR_Values[0] == 0x7F) && NodeIntersectionFLG == 0)
+      if (I2C_IR_Values[0] == 0xFF /*|| I2C_IR_Values[0] == 0xFE || I2C_IR_Values[0] == 0x7F)*/ && NodeIntersectionFLG == 0)
       {
         yposStart = robot_pos[0];
         NodeIntersectionFLG = 1;
       }
       yposCurrent = robot_pos[0];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (yposCurrent - yposStart >= ((robotLength + .2)/ 2.5) && NodeIntersectionFLG == 1)
+      if (yposCurrent - yposStart >= ((robotLength)/ 2) && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(v_up, s_stop);
@@ -309,7 +336,7 @@ void TC3_Handler()
       }
       yposCurrent = robot_pos[0];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(yposCurrent) - abs(yposStart) >= ((robotLength + .2)/ 2.5) && NodeIntersectionFLG == 1)
+      if (abs(yposCurrent) - abs(yposStart) >= ((robotLength)/ 2) && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(v_down, s_stop);
@@ -329,10 +356,12 @@ void TC3_Handler()
       {
         xposStart = robot_pos[1];
         NodeIntersectionFLG = 1;
+        I2C_IR_Values[2] = 0b00011000;
+        binToArray(I2C_IR_Values[2], h_left);
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (xposCurrent - xposStart >= ((robotLength + .2)/ 2.0) && NodeIntersectionFLG == 1)
+      if (xposCurrent - xposStart >= ((robotLength)/ 2.0) && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_left, s_stop);
@@ -346,10 +375,12 @@ void TC3_Handler()
       {
         xposStart = robot_pos[1];
         NodeIntersectionFLG = 1;
+        I2C_IR_Values[3] = 0b00011000;
+        binToArray(I2C_IR_Values[3], h_right);
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(xposCurrent )- abs(xposStart) >= ((robotLength + .2)/ 2.0) && NodeIntersectionFLG == 1)
+      if (abs(xposCurrent )- abs(xposStart) >= ((robotLength)/ 2.0) && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_right, s_stop);
@@ -362,11 +393,11 @@ void TC3_Handler()
 //*************************************************************************//
   switch(dir)
   {
-    case LEFT: Control(h_left, 'l'); break;
-    case RIGHT: Control(h_right, 'l'); break;
-    case UP: Control(v_up, 'u'); break;
-    case DOWN: Control(v_down, 'u'); break;
-    case STOP: Control(s_stop,'u'); break;
+    case LEFT: Control(h_left, 'l', h_right); break;
+    case RIGHT: Control(h_right, 'l', h_left); break;
+    case UP: Control(v_up, 'u', v_down); break;
+    case DOWN: Control(v_down, 'u', v_up); break;
+    case STOP: Control(s_stop,'u', s_stop); break;
   }
 }
 /********************************************************************/

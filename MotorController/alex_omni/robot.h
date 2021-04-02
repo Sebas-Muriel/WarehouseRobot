@@ -4,11 +4,11 @@ void pwm_init(void);
 void pwm_set_duty(int channel, int duty);     
 void command_motor(int channel, int duty);    
 void fwdKinematics(void);        
-float IR_PID(uint8_t *frontSensor);             
-void invKinematics(uint8_t *arr, char d);               
+float IR_PID(uint8_t *frontSensor);              
+void invKinematics(uint8_t *front, char d, uint8_t *back);               
 void timer_init(void);                        
 void GetCurrentStatus(void);                  
-void Motor_Control(uint8_t *arr, char d);                     
+void Motor_Control(uint8_t *front, char d, uint8_t *back);                     
 
 // Encoder Functions
 void encoder1CHB(void);   
@@ -25,11 +25,14 @@ void encoder_init(void);
 //Sonar sensors
 void readSonars(void);
 
+float P =0, I =0, U =0;
+float kp = .02, ki = .001;                    
+
 
 #define pi          3.141516
 #define PPR         5736.0     // Pulses per revolution (w/ gear box included)
-#define del_T       0.01       // [s]
-#define wheelRad    0.1        // [m]
+#define del_T       0.0083       // [s]
+#define wheelRad    0.05        // [m]
 #define robotWidth  0.4953     // [m] (19.5 inches)
 #define robotLength 0.4953    // [m] (19.5 inches)
 
@@ -91,8 +94,7 @@ float des_robot_vel[3] = {0.0,0.0,0.0};           // desired robot velocities, 0
    
 
 // initialize timer
-void timer_init(void)
-{
+void timer_init(void){
 
   // initialize timer1
      noInterrupts();           // disable all interrupts
@@ -563,16 +565,16 @@ void encoder4CHB(void)
 
 // uses the real encoder values for the speed of the wheels to calculate the actual robot velocities and then position
 void fwdKinematics(void){
- 
+  float factor = .9;
   // forward kinematics to determine actual robot forward, lateral, and angular velocity
   robot_vel[0] = wheelRad / 4.0 * ( joint_vel[0] - joint_vel[1] - joint_vel[2] + joint_vel[3]) / sin(pi/4.0); // forward velocity update
   robot_vel[1] = wheelRad / 4.0 * (-joint_vel[0] - joint_vel[1] + joint_vel[2] + joint_vel[3]) / cos(pi/4.0); // lateral velocity update
   robot_vel[2] = wheelRad / 4.0 * (joint_vel[0] + joint_vel[1] + joint_vel[2] + joint_vel[3]) / R;    // angular velocity update
 
   // update robot real time position
-  robot_pos[0] = robot_pos[0] + robot_vel[0]*cos(robot_pos[2])*del_T - robot_vel[1]*sin(robot_pos[2])*del_T;  // x position update
-  robot_pos[1] = robot_pos[1] + robot_vel[0]*sin(robot_pos[2])*del_T + robot_vel[1]*cos(robot_pos[2])*del_T;  // y position update
-  robot_pos[2] = robot_pos[2] + robot_vel[2] * del_T;      // heading angle update
+  robot_pos[0] = robot_pos[0] + robot_vel[0]*cos(robot_pos[2])*del_T/factor - robot_vel[1]*sin(robot_pos[2])*del_T;  // x position update
+  robot_pos[1] = robot_pos[1] + robot_vel[0]*sin(robot_pos[2])*del_T/factor + robot_vel[1]*cos(robot_pos[2])*del_T;  // y position update
+  robot_pos[2] = robot_pos[2] + robot_vel[2] * del_T/factor;      // heading angle update
 
   robot_pos[2] = atan2(sin(robot_pos[2]), cos(robot_pos[2])); // constrain between [-pi,pi) 
   
@@ -583,8 +585,6 @@ float IR_PID(uint8_t *frontSensor)
 {
   int16_t error = 0;
   float sum = 0;
-  float P =0, I =0, U =0;
-  float kp = .1, ki = .1;
   for (int i =0 ;i < 8; i++)
   {
     if(frontSensor[i] == 1)
@@ -604,17 +604,20 @@ float IR_PID(uint8_t *frontSensor)
   }
   P = sum;
   I = I + P;
-  U = P*kp;
-  return U;
-
+  U = P*kp + I*ki;
+  return sum;
 }
 
 
 // determines the desired angular velocities of each wheel to reach the specified speed in the main loop
-void invKinematics(uint8_t *arr, char d){
-  float U = IR_PID(arr);
-  if ( U > .25) U = .25;
-  if (U < -.25) U = -.25;
+void invKinematics(uint8_t *front, char d, uint8_t *back){
+  float PIDerror = IR_PID(front);
+  if ( U > .15) U = .15;
+  if (U < -.15) U = -.15;
+//  IR_PID(back);
+//  if ( Ub > .15) Ub = .15;
+//  if (Ub < -.15) Ub = -.15;
+  
 
   // update desired robot angular velocity
  // Serial.println(U);
@@ -623,7 +626,26 @@ void invKinematics(uint8_t *arr, char d){
   if (d == 'l')
     des_robot_vel[0] = -U;
   else
+  {
     des_robot_vel[1] = -U;
+  }
+
+  if( PIDerror == 0)
+  {
+    I = 0;
+    if (d == 'l')
+      des_robot_vel[0] = 0;
+    else
+    {
+      des_robot_vel[1] = 0;
+    }
+  }
+
+
+//  if (U > Ub)
+//    des_robot_vel[2] = des_robot_vel[2] - U*5;
+//  else if (U < Ub)
+//    des_robot_vel[2] = des_robot_vel[2] - U*5;
     
 //  des_robot_vel[0] = des_robot_vel[0] - U;
 
@@ -642,12 +664,12 @@ void invKinematics(uint8_t *arr, char d){
 
 
 
-void  Motor_Control(uint8_t *arr, char d) {
+void  Motor_Control(uint8_t *first, char d, uint8_t *back) {
 
   int i;
     
   // map desired robot velocities to desired wheel velocities
-  invKinematics(arr, d);
+  invKinematics(first, d, back);
 
   // PD control Law
   for(i = 0;i<4;i++){

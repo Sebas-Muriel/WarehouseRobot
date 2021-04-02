@@ -29,7 +29,7 @@ void setup()
 
   qtr4.setTypeRC();
   qtr4.setSensorPins((const uint8_t[]){3, 4, 5, 6, 7, 8, 9, 10}, SensorCount);
-  qtr4.setEmitterPin(2);
+  qtr4.setEmitterPin(11);
   
   Wire.begin(SLAVE_ADDRESS);
   Wire.onRequest(I2CrequestHandler);
@@ -56,6 +56,8 @@ void loop()
 //  Serial.println("\nUp:\t");
 //  for (uint8_t i = 0; i < SensorCount; i++)
 //    {Serial.print(sensorValuesUp[i]); Serial.print('\t');}
+//  Serial.println();
+//  Serial.println(I2Cbuffer[0], BIN);
 ////  Serial.println("\nDown:\t");
 ////  for (uint8_t i = 0; i < SensorCount; i++)
 ////    { Serial.print(sensorValuesDown[i]); Serial.print('\t');}
@@ -65,11 +67,11 @@ void loop()
 //  Serial.println("\nRight:\t");
 //  for (uint8_t i = 0; i < SensorCount; i++)
 //    { Serial.print(sensorValuesRight[i]); Serial.print('\t');}
+//
+//  Serial.println();
+//  Serial.println(I2Cbuffer[3], BIN);
+////  Serial.println();
 //  delay(500);
-//  Serial.println();
-//  Serial.print(I2Cbuffer[0], BIN);
-//  Serial.println();
-
 }
 
 uint8_t readSensors(uint16_t values[])
