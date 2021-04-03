@@ -173,8 +173,6 @@ void UART_TX(char message)
 void binToArray(uint8_t bin, uint8_t * arr)
 {
   uint8_t mask = 1;
-  uint8_t tester[8] = {0,0,0,1,1,0,0,0};
-  uint8_t count = 0;
 
   for (int i = 0, j =7; i < 8; i++)
   {
@@ -182,16 +180,59 @@ void binToArray(uint8_t bin, uint8_t * arr)
     mask = mask<<1;
     j--;
   }
-
-  for (int i = 2; i < 6; i++)
+//Filter to get rid of noise prioritizes the middle area
+  uint8_t count = 0;
+  uint8_t indexOfOnes = 0;
+  uint8_t largestOnes = 0;
+  uint8_t largestIndex = 0;
+  bool many = false;
+  for (int i =0 ; i < 8; i++)
   {
-    if (arr[i] == tester[i])
+    if (arr[i] == 1)
+    {
+      if (many == false)
+        indexOfOnes = i;
       count++;
+      many = true;
+    }
+
+    if (arr[i] == 0)
+    {
+      many = false;
+      if (largestOnes <= count)
+      {
+        if (abs(indexOfOnes- 3) < abs(largestIndex -3))
+        {
+          largestOnes = count;
+          largestIndex = indexOfOnes;
+        }
+      }
+      count = 0;
+    }
   }
-  if (count == 4)
+  if (arr[7] == 1)
   {
-    for (int i =0 ; i < 8; i++)
-      arr[i] = tester[i];
+      if (largestOnes <= count)
+      {
+        if (abs(indexOfOnes- 3) < abs(largestIndex -3))
+        {
+          largestOnes = count;
+          largestIndex = indexOfOnes;
+        }
+      }
+  }
+  count = 0;
+  for (int i =0; i < 8; i++)
+  {
+    if (i >= largestIndex && count < largestOnes)
+    {
+      arr[i] = 1;
+      count++;
+    }
+    else
+    {
+      arr[i] = 0;
+    }
   }
 }
 
@@ -207,7 +248,7 @@ bool lineLogic(uint8_t IR_Sens)
 {
   for (int i =0 ; i < 16; i++)
   {
-    if (IR_Sens == (0xf0 + i) || IR_Sens == (0xE0 + i))
+    if (IR_Sens == (0x0F + i<<4) || IR_Sens == (0x0E + i<<4))
       return true;
   }
   return false;
@@ -294,7 +335,7 @@ void TC3_Handler()
         NodeIntersectionFLG = 1;
       }
       //Ignore Ticks
-      if (I2C_IR_Values[3] <= 0x1F)
+      if (lineLogic(I2C_IR_Values[3]) == true)
       {
 //        UART_TX('1');
         I2C_IR_Values[3] = 0b00011000;
