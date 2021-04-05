@@ -41,49 +41,18 @@ SRDY = 17 #yellow
 MRDY = 27 #orange
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
-
 startSerial = ""
-
 def main(package):
-    time.sleep(2)
+    direction = 'up'
     PinSetup()
     startTime = time.time()
     while(1):
         currentTime= time.time()
-        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(read_serial)
-        if currentTime-startTime > 2:
-            UART_send_repeat(downNode)
-            break
-    startTime = time.time()
-    while(1):
-        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(read_serial)
-        currentTime= time.time()
-        if currentTime-startTime > 2:
-            UART_send_repeat(upNode)
-            break
-    startTime = time.time()
-    while(1):
-        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(read_serial)
-        currentTime= time.time()
-        if currentTime-startTime > 2:
-            UART_send_repeat(leftNode)
-            break
-    startTime = time.time()
-    while(1):
-        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(read_serial)
-        currentTime= time.time()
         if currentTime-startTime > 2:
             UART_send_repeat(rightNode)
             break
-
     while(1):
-        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(read_serial)
-
+        pass
     return
 
 def PinSetup():

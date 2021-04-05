@@ -9,5 +9,3 @@ https://www.hackster.io/gatoninja236/scan-qr-codes-in-real-time-with-raspberry-p
 To get Camera working use this in terminal:
 
 sudo chmod a+rw /dev/i2c-*
-
-10.142.104.24
