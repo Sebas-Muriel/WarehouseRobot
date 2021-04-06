@@ -12,7 +12,9 @@ import json
 import cv2
 import RPi.GPIO as GPIO
 import adafruit_servokit
-import cv2
+import cv2 as cv
+import numpy as np
+from pyzbar.pyzbar import decode
 
 
 class ServoKit(object):
@@ -69,6 +71,14 @@ downNode.append(0x11)
 reset = bytearray()
 reset.append(0x00)
 
+stopMotor = bytearray()
+stopMotor.append(0x00)
+level1Motor = bytearray()
+level1Motor.append(0x20)
+level2Motor = bytearray()
+level2Motor.append(0x40)
+pickupMotor = bytearray()
+pickupMotor.append(0x60)
 
 SRDY = 17 #yellow
 MRDY = 27 #orange
@@ -98,55 +108,13 @@ def main(package):
     #While loop reading the Intersections/QRs until it gets to the package. 
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
-    
-    count = 0
 
-    if currentPoint[0] == endingPoint["End"][0]:
-        if currentPoint[1] != endingPoint["End"][1]:
-            if (currentPoint[1] > endingPoint["End"][1]):
-                UART_send_repeat(downNode)
-            else:
-                UART_send_repeat(upNode)
-    else:
-        if (currentPoint[0] > endingPoint["End"][0]):
-            UART_send_repeat(leftNode)
-        else:
-            UART_send_repeat(rightNode)
+    nodeMove(currentPoint, endingPoint["End"])
 
-    while(1):
-        if currentPoint[0] == endingPoint["End"][0]:
-            Horizontal = False
-            if currentPoint[1] == endingPoint["End"][1]:
-                break
-        if Horizontal == True:
-            #Go Horizontal first
-            if (currentPoint[0] > endingPoint["End"][0]):
-                navMove("Left", currentPoint)
-            else:
-                navMove("Right", currentPoint)
-        else:
-            #Go Vertically  
-            if (currentPoint[1] > endingPoint["End"][1]):
-                navMove("Down", currentPoint)
-            else:
-                navMove("Up", currentPoint)
-
-        if currentPoint[0] == endingPoint["End"][0]:
-            if count == 0:
-                if (currentPoint[1] > endingPoint["End"][1]):
-                    UART_send_repeat(downNode)
-                else:
-                    UART_send_repeat(upNode)
-            count = count + 1
-            Horizontal = False
-
-        print(currentPoint)
     #Tell Arduino to stop
-    UART_send_repeat(stopTick)
     print("Robot must go", endingPoint["Direction"], "to get to the package")
 
     searchMove(endingPoint["Direction"])
-
     searchPackage = False
     while(1):
 
@@ -160,22 +128,15 @@ def main(package):
                 print(QR)
                 
                 if (QR["Item"] == package):
-                    print("here")
                     searchPackage = True
                     ser.flush()
-                    break
-                        #pickup
+                    PickupPackage()
+
             searchMove(endingPoint["Direction"])
-                        #searchPackage = True
-                #move motor up
-                    #if QR code contains package
-                        #pickup
-                        #searchPackage = True
-            # returnToStart(currentPoint)
         if (readIRsensors() == 1):
             break
         
-    #Reach the intersection
+    #Reach the node
     UART_send_repeat(stopTick)
     UART_send_repeat(reset)
 
@@ -188,53 +149,76 @@ def main(package):
 
     print("starting Point", currentPoint, "ending Point: ", endingPoint["End"])
 
-    #Decided which direction to go at start
-    if currentPoint[0] == endingPoint["End"][0]:
-        if currentPoint[1] != endingPoint["End"][1]:
-            if (currentPoint[1] > endingPoint["End"][1]):
+    nodeMove(currentPoint, endingPoint["End"])
+
+    UART_send_repeat(reset)
+    return
+
+def PickupPackage():
+    #Pickup Package Process
+    UART_send_repeat(upNode)
+    while(1):
+        if (readIRsensors() == 1):
+            UART_send_repeat(stopNode)
+            break
+    UART_send_repeat(pickupMotor)
+    while(1):
+        if (readIRsensors() == 3):
+            UART_send_repeat(stopMotor)
+            break
+    UART_send_repeat(downNode)
+    while(1):
+        if (readIRsensors() == 1):
+            UART_send_repeat(stopNode)
+            break
+    UART_send_repeat(level1Motor)
+    while(1):
+        if (readIRsensors() == 3):
+            UART_send_repeat(stopMotor)
+            break
+
+def nodeMove(start, end):
+    count = 0
+    if start[0] == end[0]:
+        if start[1] != end[1]:
+            if (start[1] > end[1]):
                 UART_send_repeat(downNode)
             else:
                 UART_send_repeat(upNode)
     else:
-        if (currentPoint[0] > endingPoint["End"][0]):
+        if (start[0] > end[0]):
             UART_send_repeat(leftNode)
         else:
             UART_send_repeat(rightNode)
-    
+
     Horizontal = True
-    count = 0
     while(1):
-        if currentPoint[0] == endingPoint["End"][0]:
+        if start[0] == end[0]:
             Horizontal = False
-            if currentPoint[1] == endingPoint["End"][1]:
+            if start[1] == end[1]:
                 break
         if Horizontal == True:
             #Go Horizontal first
-            if (currentPoint[0] > endingPoint["End"][0]):
-                navMove("Left", currentPoint)
+            if (start[0] > end[0]):
+                navMove("Left", start)
             else:
-                navMove("Right", currentPoint)
+                navMove("Right", start)
         else:
             #Go Vertically  
-            if (currentPoint[1] > endingPoint["End"][1]):
-                navMove("Down", currentPoint)
+            if (start[1] > end[1]):
+                navMove("Down", start)
             else:
-                print("Going up")
-                navMove("Up", currentPoint)
+                navMove("Up", start)
 
-        if currentPoint[0] == endingPoint["End"][0]:
+        if start[0] == end[0]:
             if count == 0:
-                if (currentPoint[1] > endingPoint["End"][1]):
+                if (start[1] > end[1]):
                     UART_send_repeat(downNode)
                 else:
                     UART_send_repeat(upNode)
-                count = count + 1
+            count = count + 1
             Horizontal = False
-
-        print(currentPoint)
-    #Tell Arduino to stop
     UART_send_repeat(stopTick)
-    UART_send_repeat(reset)
     return
 
 def PinSetup():
@@ -324,44 +308,30 @@ def readIRsensors():
 #Todo Read QR code code
 def readQR():
     # set up camera object
-    cap = cv2.VideoCapture(-1)
-
-    # QR code detection object
-    detector = cv2.QRCodeDetector()
+    cap = cv.VideoCapture(0)
+    cap.set(3,640)
+    cap.set(4,480)
     startTime = time.time()
-
     while True:
+        ret, frame = cap.read()
         currentTime = time.time()
-        if (currentTime - startTime > 5):
-            data = "null"
-            cap.release()
-            cv2.destroyAllWindows()
-            return data
-        # get the image
-        _, img = cap.read()
-        # get bounding box coords and data
-        data, bbox, _ = detector.detectAndDecode(img)
 
-        # if there is a bounding box, draw one, along with the data
-        if(bbox is not None):
-            for i in range(len(bbox)):
-                cv2.line(img, tuple(bbox[i][0]), tuple(bbox[(i+1) % len(bbox)][0]), color=(255,
-                         0, 255), thickness=2)
-            cv2.putText(img, data, (int(bbox[0][0][0]), int(bbox[0][0][1]) - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5, (0, 255, 0), 2)
-            if data:
-                print("Package: ", data)
-                cap.release()
-                cv2.destroyAllWindows()
-                return data
-        # display the image preview
-        cv2.imshow("Package detection", img)
-        if(cv2.waitKey(1) == ord("q")):
+        for barcode in decode(frame):
+            print(barcode.data)
+            myData = barcode.data.decode('utf-8')
+            print(myData)
+            pts = np.array([barcode.polygon],np.int32)
+            cv.polylines(frame,[pts],True,(255,0,0),5)
+            pts2 = barcode.rect
+            cv.putText(frame,myData,(pts2[0],pts2[1]), cv.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
+
+        cv.imshow('In',frame)
+        if currentTime - startTime >= 5:
             break
-    # free camera object and exit
-    cap.release()
-    cv2.destroyAllWindows()
-    return
+        if myData:
+            return myData
+    return myData
+   
 
 #Todo Create code to move robot when searching for a box inbetween nodes
 def searchMove(searchDirection):

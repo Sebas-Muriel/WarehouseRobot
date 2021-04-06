@@ -24,15 +24,16 @@
 #define SRDY 0x05
 
 //defines for Motor Movement
-#define MOTOR_LEVEL1 0x00
-#define MOTOR_LEVEL2 0x01
-#define MOTOR_LIFT 0x02
+#define MOTOR_STOP 0x00
+#define MOTOR_LEVEL1 0x01
+#define MOTOR_LEVEL2 0x02
+#define MOTOR_LIFT 0x03
 
 unsigned long ticks = 0; 
 
 float goal[2] = {5.0, 0.0};
 
-float vxMax = 0.15;
+float vxMax = 0.15;      
 float vyMax = 0.15;
 float thetaDotMax = 1.00;
 
@@ -49,6 +50,7 @@ uint8_t NodeIntersectionFLG = 0, TickIntersectionFLG = 0;
 char node = 'l', tick ='l';
 
 uint8_t dir = STOP;
+uint8_t motor = MOTOR_STOP;
 uint8_t mode = RESET_MODE;
 uint8_t UART_RX;
 uint8_t MRDY_VAL;
@@ -201,6 +203,7 @@ void UART_REC()
        UART_RX = Serial.read();
        dir = (UART_RX&0b00011100)>>2;
        mode = (UART_RX&0x03);
+       motor = (UART_RX&0b01100000)>>5;
     }
   }
  digitalWrite(SRDY, HIGH);
@@ -577,6 +580,27 @@ void TC3_Handler()
       }   
     }
   }
+//*************************************************************************//
+//******************************MOTOR**************************************//
+//*************************************************************************//
+  if (motor == MOTOR_STOP)
+  {
+    
+  }
+  else if(motor == MOTOR_LEVEL1)
+  {
+    
+  }
+  else if(motor == MOTOR_LEVEL2)
+  {
+    
+  }
+  else if(motor == MOTOR_PICKUP)
+  {
+    
+  }
+
+
 //*************************************************************************//
 //******************************Controller*********************************//
 //*************************************************************************//
