@@ -104,7 +104,6 @@ app.get('/test', (req, res) =>
        BUSY = false
        return res.send(dataToSend)
     });
-    res.send(req.get('host'));
 });
 
 app.get('/Stocked', (req, res) => {  

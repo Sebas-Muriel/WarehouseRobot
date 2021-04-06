@@ -450,7 +450,7 @@ void TC3_Handler()
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(xposCurrent) - abs(xposStart) >=  ((robotLength)/2) && NodeIntersectionFLG == 1)
+      if (abs(xposCurrent) - abs(xposStart) >=  ((robotLength)/2)-.02 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_right, s_stop);
@@ -483,6 +483,11 @@ void TC3_Handler()
         NodeIntersectionFLG = 1;
       }
       yposCurrent = robot_pos[0];
+      if (NodeIntersectionFLG == 1)
+      {
+        I2C_IR_Values[1] = 0b00011000;
+        binToArray(I2C_IR_Values[1], v_down);
+      }
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
       if (abs(yposCurrent) - abs(yposStart) >= ((robotLength)/ 2)-.05 && NodeIntersectionFLG == 1)
       {
