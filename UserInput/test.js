@@ -8,7 +8,7 @@ var BUSY = false;
 //*****************MONDO DB STUFF****************//
 const uri = "mongodb://127.0.0.1:27017/WarehouseMap";
 const mongoose = require('mongoose');
-const { response } = require('express');
+let { response } = require('express');
 
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
 const db = mongoose.connection;
@@ -63,7 +63,7 @@ app.get('/pickup', (req, res) => {
               {
                 message = "<h1 style = 'font-size: 40px;'>The robot is busy!</h1>"
 
-                const python = spawn('python', ['../Navigation/Nav.py', 'Box1']);
+                let python = spawn('python3', ['Pickup.py', response.Name]);
                 python.stdout.on('data', function (data) {
                      console.log('Pipe data from python script ...');
                      dataToSend = data.toString();
@@ -92,7 +92,7 @@ app.get('/test', (req, res) =>
 {
     req.get('host');
     var dataToSend;
-    const python = spawn('python', ['script1.py', "Box1"]);
+    const python = spawn('python3', [path.join(__dirname, 'script1.py'), "Box1"]);
     python.stdout.on('data', function (data) {
         console.log('Pipe data from python script ...');
         dataToSend = data.toString();

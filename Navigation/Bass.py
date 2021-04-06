@@ -6,7 +6,7 @@ import re
 import math
 import time
 import serial
-# import cv2
+import cv2
 
 
 leftTick = bytearray()
@@ -44,13 +44,9 @@ def main(package):
     mycol_packages = mydb["QRs"]
     mycol_nav = mydb["Navigation"]
 
-    sep = package.split('x')
-    row = int(sep[0])
-    col = int(sep[1])
-
     mycol_nav.drop()
     mycol_packages.drop()
-    mycol_nav.insert_many(insertGrid(row,col))
+    mycol_nav.insert_many(insertGrid(3,3))
     return
 
         
