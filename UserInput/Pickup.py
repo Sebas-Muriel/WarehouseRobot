@@ -324,7 +324,7 @@ def readIRsensors():
 #Todo Read QR code code
 def readQR():
     # set up camera object
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(-1)
 
     # QR code detection object
     detector = cv2.QRCodeDetector()
