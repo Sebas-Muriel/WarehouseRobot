@@ -5,6 +5,8 @@ cap = cv2.VideoCapture(0)
 
 # QR code detection object
 detector = cv2.QRCodeDetector()
+if cap.isOpened():
+    currentFrame = 0
 
 while True:
     # get the image
