@@ -2,6 +2,7 @@
 # need these installed on py: sudo apt-get install python-serial
 #if i2c-1 not giving permissions run this command:
 #sudo chmod a+rw /dev/i2c-*
+#export DISPLAY=:0
 import pymongo
 import sys
 import re
@@ -117,23 +118,32 @@ def main(package):
     searchMove(endingPoint["Direction"])
     searchPackage = False
     while(1):
-
+        sensorBool = readIRsensors()
         # Move in the direcetino of the package
-        if (readIRsensors() == 2 and searchPackage == False):
-            UART_send_repeat(stopTick)
-            QR = readQR()
-            if (QR != "null"):
-                QR = json.loads(QR)
-                QR["Item"] = QR["Item"].replace(" ", "")
-                print(QR)
+        if (sensorBool == 2 and searchPackage == False):
+            UART_send_repeat(upTick)
+            while(1):
+                if (readIRsensors() == 1):
+                    break
+            starttimes = time.time()
+            while(1):
+                currenttimes = time.time()
+                if currenttimes - starttimes > 5:
+                    UART_send_repeat(downNode)
+                if (readIRsensors() == 1):
+                    break
+          #  QR = readQR()
+          #  if (QR != ""):
+          #      QR = json.loads(QR)
+          #      QR["Item"] = QR["Item"].replace(" ", "")
+          #      print(QR)
                 
-                if (QR["Item"] == package):
-                    searchPackage = True
-                    ser.flush()
-                    PickupPackage()
-
-            searchMove(endingPoint["Direction"])
-        if (readIRsensors() == 1):
+          #      if (QR["Item"] == package):
+          #          searchPackage = True
+          #          ser.flush()
+            #PickupPackage()
+            #searchMove(endingPoint["Direction"])
+        elif (sensorBool == 1):
             break
         
     #Reach the node
@@ -156,7 +166,7 @@ def main(package):
 
 def PickupPackage():
     #Pickup Package Process
-    UART_send_repeat(upNode)
+    UART_send_repeat(upTick)
     while(1):
         if (readIRsensors() == 1):
             UART_send_repeat(stopNode)
@@ -193,6 +203,7 @@ def nodeMove(start, end):
 
     Horizontal = True
     while(1):
+        print(start)
         if start[0] == end[0]:
             Horizontal = False
             if start[1] == end[1]:
@@ -262,6 +273,7 @@ def CreatePath(Nav, QRs, item):
 #Breaks up the node into the letters and numbers and returns a list
 def splitNode(node):
     match = re.match(r"([a-z]+)([0-9]+)", node, re.I)
+    match = re.match(r"([a-z]+)([0-9]+)", node, re.I)
     if match:
         items = match.groups()
     items = list(items)
@@ -309,15 +321,16 @@ def readIRsensors():
 def readQR():
     # set up camera object
     cap = cv.VideoCapture(0)
-    cap.set(3,640)
-    cap.set(4,480)
+    # cap.set(3,640)
+    # cap.set(4,480)
+    myData = ""
     startTime = time.time()
     while True:
         ret, frame = cap.read()
         currentTime = time.time()
 
         for barcode in decode(frame):
-            print(barcode.data)
+            #print(barcode.data)
             myData = barcode.data.decode('utf-8')
             print(myData)
             pts = np.array([barcode.polygon],np.int32)
@@ -326,9 +339,9 @@ def readQR():
             cv.putText(frame,myData,(pts2[0],pts2[1]), cv.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
 
         cv.imshow('In',frame)
-        if currentTime - startTime >= 5:
+        if currentTime - startTime >= 10:
             break
-        if myData:
+        if myData != "":
             return myData
     return myData
    
