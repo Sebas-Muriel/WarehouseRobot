@@ -90,7 +90,7 @@ servoKit = ServoKit(4)
 
 
 firstFLG = 0
-START = "B2"
+START = "C2"
 startSerial = ""
 
 def main(package):
@@ -109,7 +109,12 @@ def main(package):
     #While loop reading the Intersections/QRs until it gets to the package. 
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
-
+    
+    UART_send_repeat(level2Motor)
+    while(1):
+        if readIRsensors() == 3:
+            break
+    PickupPackage()
     nodeMove(currentPoint, endingPoint["End"])
 
     #Tell Arduino to stop
@@ -121,17 +126,8 @@ def main(package):
         sensorBool = readIRsensors()
         # Move in the direcetino of the package
         if (sensorBool == 2 and searchPackage == False):
-            UART_send_repeat(upTick)
-            while(1):
-                if (readIRsensors() == 1):
-                    break
-            starttimes = time.time()
-            while(1):
-                currenttimes = time.time()
-                if currenttimes - starttimes > 5:
-                    UART_send_repeat(downNode)
-                if (readIRsensors() == 1):
-                    break
+                #if (readIRsensors() == 1):
+                 #   break
           #  QR = readQR()
           #  if (QR != ""):
           #      QR = json.loads(QR)
@@ -141,14 +137,12 @@ def main(package):
           #      if (QR["Item"] == package):
           #          searchPackage = True
           #          ser.flush()
-            #PickupPackage()
-            #searchMove(endingPoint["Direction"])
+            PickupPackage()
+            searchMove(endingPoint["Direction"])
         elif (sensorBool == 1):
             break
         
     #Reach the node
-    UART_send_repeat(stopTick)
-    UART_send_repeat(reset)
 
     print("beginning Going back to Start")
     endingPoint["End"] = convertToGrid(START)
@@ -169,22 +163,18 @@ def PickupPackage():
     UART_send_repeat(upTick)
     while(1):
         if (readIRsensors() == 1):
-            UART_send_repeat(stopNode)
             break
     UART_send_repeat(pickupMotor)
     while(1):
         if (readIRsensors() == 3):
-            UART_send_repeat(stopMotor)
+            UART_send_repeat(downNode)
             break
-    UART_send_repeat(downNode)
     while(1):
         if (readIRsensors() == 1):
-            UART_send_repeat(stopNode)
+            UART_send_repeat(level1Motor)
             break
-    UART_send_repeat(level1Motor)
     while(1):
         if (readIRsensors() == 3):
-            UART_send_repeat(stopMotor)
             break
 
 def nodeMove(start, end):
@@ -261,9 +251,9 @@ def CreatePath(Nav, QRs, item):
     #itemLoc = QRs.find({}, {"_id": 0, "Item" :item, "Left": 1, "Right": 1})
     print(itemLoc)
     if itemLoc["Level"] == 1:
-        servoKit.setAngle(0, 90)
+        servoKit.setAngle(0, 125)
     else:
-        servoKit.setAngle(0, 45)
+        servoKit.setAngle(0, 180)
 
 
     itemLoc["Left"]  = convertToGrid(itemLoc["Left"])
