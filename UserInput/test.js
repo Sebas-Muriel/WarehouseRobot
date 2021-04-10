@@ -61,7 +61,7 @@ app.get('/pickup', (req, res) => {
             {
               if(BUSY == false)
               {
-                message = "<h1 style = 'font-size: 40px;'>The robot is busy!</h1>"
+                message = "<h1 style = 'font-size: 40px;'>Picking package up!</h1>"
 
                 let python = spawn('python3', ['Pickup.py', response.Name]);
                 python.stdout.on('data', function (data) {
@@ -77,6 +77,11 @@ app.get('/pickup', (req, res) => {
                  });
                 //Add the response to the queue
                 console.log(response);
+              }
+              
+              else
+              {
+                 message = "<h1 style = 'font-size: 40px;'>The robot is busy!</h1>" 
               }
             }
             else
