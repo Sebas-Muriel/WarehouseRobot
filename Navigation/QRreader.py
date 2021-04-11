@@ -2,14 +2,15 @@ import cv2 as cv
 import numpy as np
 from pyzbar.pyzbar import decode
 import time
+#export DISPLAY=:0
 
 # set up camera object
 cap = cv.VideoCapture(0)
-cap.set(3,640)
-cap.set(4,480)
+# cap.set(3,640)
+# cap.set(4,480)
 startTime = time.time()
 while True:
-    ret, frame = cap.read()
+    ret,frame = cap.read()
     currentTime = time.time()
 
     for barcode in decode(frame):
@@ -22,8 +23,5 @@ while True:
         cv.putText(frame,myData,(pts2[0],pts2[1]), cv.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
 
     cv.imshow('In',frame)
-    if currentTime - startTime >= 5:
+    if currentTime - startTime >= 20:
         break
-    if myData:
-        print(myData)
-print(myData)

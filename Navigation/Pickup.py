@@ -79,7 +79,7 @@ servoKit = ServoKit(4)
 
 
 firstFLG = 0
-START = "B2"
+START = "A1"
 startSerial = ""
 
 def main(package):
@@ -149,9 +149,9 @@ def main(package):
 
     searchPackage = False
     while(1):
-
+        sensorBool = readIRsensors();
         # Move in the direcetino of the package
-        if (readIRsensors() == 2 and searchPackage == False):
+        if (sensorBool == 2 and searchPackage == False):
             UART_send_repeat(stopTick)
             QR = readQR()
             if (QR != "null"):
@@ -172,7 +172,7 @@ def main(package):
                         #pickup
                         #searchPackage = True
             # returnToStart(currentPoint)
-        if (readIRsensors() == 1):
+        if (sensorBool == 1):
             break
         
     #Reach the intersection
@@ -324,7 +324,7 @@ def readIRsensors():
 #Todo Read QR code code
 def readQR():
     # set up camera object
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(-1)
 
     # QR code detection object
     detector = cv2.QRCodeDetector()

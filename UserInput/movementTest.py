@@ -61,8 +61,10 @@ def main(package):
 
     endingPoint = {}
     currentPoint = convertToGrid(START)
+    start = currentPoint
     # endingPoint = CreatePath(mycol_nav, mycol_packages, package)
     endingPoint["End"] = convertToGrid(END)
+    end = endingPoint["End"]
     print("Ending Point", endingPoint)
     print("Starting Point", currentPoint)
     #While loop reading the Intersections/QRs until it gets to the package. 
@@ -70,7 +72,19 @@ def main(package):
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
     
     count = 0
-    UART_send_repeat(leftNode)
+    
+    if start[0] == end[0]:
+        if start[1] != end[1]:
+            if (start[1] > end[1]):
+                UART_send_repeat(downNode)
+            else:
+                UART_send_repeat(upNode)
+    else:
+        if (start[0] > end[0]):
+            UART_send_repeat(leftNode)
+        else:
+            UART_send_repeat(rightNode)
+
     while(1):
         if currentPoint[0] == endingPoint["End"][0]:
             Horizontal = False

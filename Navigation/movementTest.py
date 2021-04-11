@@ -45,8 +45,8 @@ ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 
 
 firstFLG = 0
-START = "A0"
-END = "B0"
+START = "B1"
+END = "A0"
 startSerial = ""
 
 def main(package):

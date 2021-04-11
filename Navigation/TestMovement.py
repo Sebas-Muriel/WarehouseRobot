@@ -53,14 +53,6 @@ def main(package):
         read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
         print(read_serial)
         if currentTime-startTime > 2:
-            UART_send_repeat(downNode)
-            break
-    startTime = time.time()
-    while(1):
-        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
-        print(read_serial)
-        currentTime= time.time()
-        if currentTime-startTime > 2:
             UART_send_repeat(upNode)
             break
     startTime = time.time()
@@ -69,7 +61,7 @@ def main(package):
         print(read_serial)
         currentTime= time.time()
         if currentTime-startTime > 2:
-            UART_send_repeat(leftNode)
+            UART_send_repeat(rightNode)
             break
     startTime = time.time()
     while(1):
@@ -77,7 +69,15 @@ def main(package):
         print(read_serial)
         currentTime= time.time()
         if currentTime-startTime > 2:
-            UART_send_repeat(rightNode)
+            UART_send_repeat(downNode)
+            break
+    startTime = time.time()
+    while(1):
+        read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
+        print(read_serial)
+        currentTime= time.time()
+        if currentTime-startTime > 2:
+            UART_send_repeat(leftNode)
             break
 
     while(1):

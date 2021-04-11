@@ -56,11 +56,11 @@ def main(package):
     UART_send_repeat(upNode)
     while(1):
         if (readIRsensors() == 1):
-            UART_send_repeat(downNode)
+            UART_send_repeat(rightNode)
             break
     while(1):
         if (readIRsensors() == 1):
-            UART_send_repeat(upNode)
+            UART_send_repeat(downNode)
             break
     while(1):
         if (readIRsensors() == 1):

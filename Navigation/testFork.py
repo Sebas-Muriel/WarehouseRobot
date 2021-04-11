@@ -35,7 +35,14 @@ downNode.append(0x11)
 
 reset = bytearray()
 reset.append(0x00)
-
+stopMotor = bytearray()
+stopMotor.append(0x00)
+level1Motor = bytearray()
+level1Motor.append(0x20)
+level2Motor = bytearray()
+level2Motor.append(0x40)
+pickupMotor = bytearray()
+pickupMotor.append(0x60)
 
 SRDY = 17 #yellow
 MRDY = 27 #orange
@@ -45,15 +52,30 @@ startSerial = ""
 def main(package):
     direction = 'up'
     PinSetup()
-    startTime = time.time()
+    starttime = time.time()
+    UART_send_repeat(level2Motor)
     while(1):
-        currentTime= time.time()
-        if currentTime-startTime > 2:
-            UART_send_repeat(upTick)
+        if readIRsensors() == 3:
+            starttime = time.time()
+            while(1):
+                currenttime = time.time()
+                if currenttime - starttime >= 3:
+                    break
+            UART_send_repeat(pickupMotor)
+            break
+    while(1):
+        if readIRsensors() == 3:
+            starttime = time.time()
+            while(1):
+                currenttime=time.time()
+                if currenttime - starttime >= 3:
+                    break
+            UART_send_repeat(level1Motor)
             break
     while(1):
         readIRsensors()
         pass
+
     return
 
 def PinSetup():
@@ -68,10 +90,10 @@ def PinSetup():
 def readIRsensors():
     read_serial = ser.readline().decode('utf-8', 'ignore').rstrip()
     print(read_serial)
-    if read_serial == "1":
-        return True
+    if read_serial == "3":
+        return 3
     else:
-        return False
+        return 0
 
 def UART_send(message):
     GPIO.output(MRDY, GPIO.LOW)

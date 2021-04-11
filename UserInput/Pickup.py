@@ -3,6 +3,7 @@
 #if i2c-1 not giving permissions run this command:
 #sudo chmod a+rw /dev/i2c-*
 #export DISPLAY=:0
+#Must plug in display first then turn on Pi to get camera to work
 import pymongo
 import sys
 import re
@@ -78,11 +79,14 @@ level1Motor = bytearray()
 level1Motor.append(0x20)
 level2Motor = bytearray()
 level2Motor.append(0x40)
+level3Motor = bytearray()
+level3Motor.append(0x80)
 pickupMotor = bytearray()
 pickupMotor.append(0x60)
 
 SRDY = 17 #yellow
 MRDY = 27 #orange
+
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 servoKit = ServoKit(4)
@@ -96,6 +100,7 @@ startSerial = ""
 def main(package):
     PinSetup()
     time.sleep(2)
+    itemLevel = 0
     myclient = MongoDBconnection()
 
     mydb = myclient["WarehouseMap"]
@@ -110,11 +115,19 @@ def main(package):
     Horizontal = True
     print("Beginning Package Pickup\n\n", currentPoint, sep= "")
     
-    UART_send_repeat(level2Motor)
-    while(1):
-        if readIRsensors() == 3:
+    for collection in mycol_packages.find():
+        if collection["Item"] == package:
+            itemLoc = collection
             break
-    PickupPackage()
+
+    if itemLoc["Level"] == "1":
+        itemLevel = 1
+        servoKit.setAngle(0, 110)
+    else:
+        servoKit.setAngle(0, 145)
+        itemLevel = 2
+    print("itemLevel: ",itemLevel)
+
     nodeMove(currentPoint, endingPoint["End"])
 
     #Tell Arduino to stop
@@ -126,18 +139,39 @@ def main(package):
         sensorBool = readIRsensors()
         # Move in the direcetino of the package
         if (sensorBool == 2 and searchPackage == False):
-                #if (readIRsensors() == 1):
-                 #   break
-          #  QR = readQR()
-          #  if (QR != ""):
-          #      QR = json.loads(QR)
-          #      QR["Item"] = QR["Item"].replace(" ", "")
-          #      print(QR)
-                
-          #      if (QR["Item"] == package):
-          #          searchPackage = True
-          #          ser.flush()
-            PickupPackage()
+            UART_send_repeat(upTick)
+            while(1):
+                if (readIRsensors() == 1):
+                    break
+            #QR = readQR()
+            QR = {"Item": "Box1"}
+            if QR != "":    
+                if (QR["Item"] == package):
+                    searchPackage = True
+                    if (itemLevel == 1):
+                        UART_send_repeat(level2Motor)
+                        while(1):
+                            if (readIRsensors() == 3):
+                                break
+                    else:
+                        UART_send_repeat(level3Motor)
+                        while(1):
+                            if (readIRsensors() == 3):
+                                break
+
+                    #move package to level
+                    PickupPackage()
+
+                else:
+                    UART_send_repeat(downNode)
+                    while(1):
+                        if (readIRsensors() == 1):
+                            break
+            else:
+                UART_send_repeat(downNode)
+                while(1):
+                    if (readIRsensors() == 1):
+                        break
             searchMove(endingPoint["Direction"])
         elif (sensorBool == 1):
             break
@@ -179,6 +213,7 @@ def PickupPackage():
 
 def nodeMove(start, end):
     count = 0
+
     if start[0] == end[0]:
         if start[1] != end[1]:
             if (start[1] > end[1]):
@@ -190,7 +225,6 @@ def nodeMove(start, end):
             UART_send_repeat(leftNode)
         else:
             UART_send_repeat(rightNode)
-
     Horizontal = True
     while(1):
         print(start)
@@ -244,16 +278,12 @@ def MongoDBconnection():
 
 #Returns an array of the last point that the robot needs to travel
 def CreatePath(Nav, QRs, item):
+    #itemLoc = QRs.find({}, {"_id": 0, "Item" :item, "Left": 1, "Right": 1})
     for collection in QRs.find():
         if collection["Item"] == item:
             itemLoc = collection
             break
-    #itemLoc = QRs.find({}, {"_id": 0, "Item" :item, "Left": 1, "Right": 1})
     print(itemLoc)
-    if itemLoc["Level"] == 1:
-        servoKit.setAngle(0, 125)
-    else:
-        servoKit.setAngle(0, 180)
 
 
     itemLoc["Left"]  = convertToGrid(itemLoc["Left"])
@@ -304,6 +334,8 @@ def readIRsensors():
         return 1
     elif read_serial == "2":
         return 2
+    elif read_serial == "3":
+        return 3
     else:
         return 0
 
@@ -329,7 +361,7 @@ def readQR():
             cv.putText(frame,myData,(pts2[0],pts2[1]), cv.FONT_HERSHEY_COMPLEX,1,(255,0,0),2)
 
         cv.imshow('In',frame)
-        if currentTime - startTime >= 10:
+        if currentTime - startTime >= 3:
             break
         if myData != "":
             return myData
