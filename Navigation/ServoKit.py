@@ -62,7 +62,7 @@ def test():
     servoKit = ServoKit(4)
     print("Start test")
 
-    servoKit.setAngle(0, 145) #110 first #145 second
+    servoKit.setAngle(0, 110) #110 first #145 second
     readQR()
     time.sleep(5)
 

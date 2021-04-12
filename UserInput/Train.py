@@ -98,6 +98,7 @@ START = ""
 startSerial = ""
 
 def main(grid):
+    PinSetup()
     myclient = MongoDBconnection()
     mydb = myclient["WarehouseMap"]
     mycol_packages = mydb["QRs"]
@@ -106,23 +107,25 @@ def main(grid):
     mycol_nav.drop()
     mycol_packages.drop()
     gridDim = grid.split('x')
-    mycol_nav.insert_many(insertGrid(gridDim[1],gridDim[0]))
+    print(gridDim)
+    mycol_nav.insert_many(insertGrid(int(gridDim[1]),int(gridDim[0])))
 
     item = dict()
-
+    allItems = list(dict())
 
     print("Beginning Training/Calibration\n\n")
-
+    numPackages = 0
     # startSerial = ser.readline().decode('utf-8', 'ignore').rstrip()
-    START = "C3"
+    START = "B1"
     Dir = "Left"
-
+    Nav = dict()
     for collection in mycol_nav.find():
+        print(collection)
         if collection["Name"] == START:
             Nav = collection
             break
-
-    ser.write(leftTick)
+    print(Nav)
+    UART_send_repeat(leftTick)
     while(1):
         sensBool = readIRsensors()
         if sensBool == 2:
@@ -133,6 +136,7 @@ def main(grid):
                     break
             #Read QR code for both heights
             for i in range(0,2):
+                numPackages = numPackages + 1
                 if i == 0:
                     servoKit.setAngle(0, 110)
                 else:
@@ -147,12 +151,13 @@ def main(grid):
                     else:
                         item["Left"] = Nav["Left"]
                         item["Right"] = Nav["Name"]
-                    item["Level"] = i+1
-                    item["Item"] = QR["Item"] 
-                    mycol_packages.insert_one(item)
+                    item["Level"] = str(i+1)
+                    item["Item"] = QR["Item"]
+                    print(item)
+                    allItems.append(dict(item))
             #Go back on main line
             UART_send_repeat(downNode)
-            while readIRsensors != 1:
+            while readIRsensors() != 1:
                 pass
             #Continue going the direction
             if Dir == "Right":
@@ -164,26 +169,34 @@ def main(grid):
             #Get node in the direction that it is moving
             if Dir == "Right":
                 tempNav = Nav["Right"]
-                for collection in mycol_packages.find():
+                for collection in mycol_nav.find():
                     if collection["Name"] == tempNav:
                         Nav = collection
                         break
-            else:
+            elif Dir == "Left":
                 tempNav = Nav["Left"]
-                for collection in mycol_packages.find():
+                for collection in mycol_nav.find():
                     if collection["Name"] == tempNav:
                         Nav = collection
                         break
-            
+            print(Nav) 
             if (endOfTraining(Nav, Dir) == True):
                 print('End of Training going back to start')
-                nodeMove(convertToGrid(Nav["Item"]), convertToGrid(START))
+                mycol_packages.insert_many(allItems)
+                nodeMove(convertToGrid(Nav["Name"]), convertToGrid(START))
                 return
             elif (moveUpLogic(Nav, Dir) == True):
+                print("Moving Down")
                 UART_send_repeat(downNode)
-                while(readIRsensors() != 1):
-                        pass
+                while(1):
+                    if readIRsensors() == 1:
+                        break
                 #Swap direction
+                tempNav = Nav["Down"]
+                for collection in mycol_nav.find():
+                    if collection["Name"] == tempNav:
+                        Nav = collection
+                        break
                 if (Dir == "Left"):
                     Dir = "Right"
                     UART_send_repeat(rightTick)
@@ -191,6 +204,7 @@ def main(grid):
                     Dir = "Left"
                     UART_send_repeat(leftTick)
             else:
+                print('not end')
                 if Dir == "Left":
                     UART_send_repeat(leftTick)
                 else:
@@ -241,6 +255,8 @@ def readQR():
         ret, frame = cap.read()
         currentTime = time.time()
 
+        currentTime = time.time()
+
         for barcode in decode(frame):
             #print(barcode.data)
             myData = barcode.data.decode('utf-8')
@@ -285,6 +301,7 @@ def insertGrid(numCol, numRow):
                 item["Right"] = str(chr(ord('@') + (i+1) )) + str(j)
 
             mongoInput.append(dict(item))
+    print(mongoInput)
     return mongoInput
 
 def endOfTraining(readQR2, Dir):
@@ -390,6 +407,22 @@ def nodeMove(start, end):
             count = count + 1
             Horizontal = False
     UART_send_repeat(stopTick)
+    return
+
+def navMove(navDirection, currentPoint):
+    if (readIRsensors() == 1):
+        if(navDirection == "Left"):
+            currentPoint[0] -= 1
+            UART_send_repeat(leftNode)
+        if(navDirection == "Right"):
+            currentPoint[0] += 1
+            UART_send_repeat(rightNode)
+        if(navDirection == "Up"):
+            currentPoint[1] += 1
+            UART_send_repeat(upNode)
+        if(navDirection == "Down"):
+            currentPoint[1] -= 1
+            UART_send_repeat(downNode)
     return
 
 if __name__ == "__main__":
