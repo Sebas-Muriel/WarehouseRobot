@@ -22,6 +22,8 @@
 //defines for pins
 #define MRDY 0x06
 #define SRDY 0x07
+#define CAMLED 0x09
+#define PILEDCONTROL 10
 
 //defines for Motor Movement
 #define MOTOR_STOP 0x00
@@ -31,7 +33,7 @@
 #define MOTOR_LIFT 0x03
 
 #define BaseFloor .13
-#define Floor1 .16
+#define Floor1 .15
 #define pickup .1
 
 unsigned long ticks = 0; 
@@ -63,6 +65,7 @@ uint8_t UART_RX;
 uint8_t MRDY_VAL;
 char dirPID = 's';
 char forkDir = 's';
+uint8_t PiLED;
 
 /*
  * UART_REC() 
@@ -109,6 +112,9 @@ void setup() {
   pinMode(MRDY, INPUT);
   attachInterrupt(digitalPinToInterrupt(MRDY), UART_REC, FALLING);
   pinMode(SRDY, OUTPUT);
+  pinMode(CAMLED, OUTPUT);
+  pinMode(PILEDCONTROL, INPUT);
+  digitalWrite(CAMLED, HIGH);
   digitalWrite(SRDY, HIGH);
   startTimer(TC1, 0, TC3_IRQn, 100); //TC1 channel 0, the IRQ for that channel and the desired frequency
   encoder_init();
@@ -125,6 +131,16 @@ void setup() {
 
 void loop() {
 
+  PiLED = digitalRead(PILEDCONTROL);
+  if (PiLED == HIGH)
+  {
+    digitalWrite(CAMLED, LOW);
+  }
+  else
+  {
+    digitalWrite(CAMLED, HIGH);
+  }
+  
   switch(dir)
   {
     case UP:    des_robot_vel[0] = vxMax; des_robot_vel[1] = 0; dirPID = 'u'; break;
