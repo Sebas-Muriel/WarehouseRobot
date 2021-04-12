@@ -39,10 +39,12 @@ stopMotor = bytearray()
 stopMotor.append(0x00)
 level1Motor = bytearray()
 level1Motor.append(0x20)
+pickupMotor = bytearray()
 level2Motor = bytearray()
 level2Motor.append(0x40)
-pickupMotor = bytearray()
 pickupMotor.append(0x60)
+level3Motor = bytearray()
+level3Motor.append(0x80)
 
 SRDY = 17 #yellow
 MRDY = 27 #orange
@@ -53,24 +55,14 @@ def main(package):
     direction = 'up'
     PinSetup()
     starttime = time.time()
-    UART_send_repeat(level2Motor)
+    UART_send_repeat(level3Motor)
     while(1):
         if readIRsensors() == 3:
-            starttime = time.time()
-            while(1):
-                currenttime = time.time()
-                if currenttime - starttime >= 3:
-                    break
-            UART_send_repeat(pickupMotor)
+            UART_send_repeat(level2Motor)
             break
     while(1):
         if readIRsensors() == 3:
-            starttime = time.time()
-            while(1):
-                currenttime=time.time()
-                if currenttime - starttime >= 3:
-                    break
-            UART_send_repeat(level1Motor)
+            UART_send_repeat(pickupMotor)
             break
     while(1):
         readIRsensors()

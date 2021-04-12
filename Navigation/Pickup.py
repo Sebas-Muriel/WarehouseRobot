@@ -79,7 +79,7 @@ servoKit = ServoKit(4)
 
 
 firstFLG = 0
-START = "A1"
+START = "B2"
 startSerial = ""
 
 def main(package):

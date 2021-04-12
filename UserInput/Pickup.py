@@ -86,7 +86,7 @@ pickupMotor.append(0x60)
 
 SRDY = 17 #yellow
 MRDY = 27 #orange
-
+LED = 22 #CAM LED
 
 ser = serial.Serial('/dev/ttyACM0',9600, timeout= 1)
 servoKit = ServoKit(4)
@@ -94,7 +94,7 @@ servoKit = ServoKit(4)
 
 
 firstFLG = 0
-START = "C2"
+START = "B1"
 startSerial = ""
 
 def main(package):
@@ -137,15 +137,17 @@ def main(package):
     searchPackage = False
     while(1):
         sensorBool = readIRsensors()
+        if (sensorBool == 1):
+            break
         # Move in the direcetino of the package
-        if (sensorBool == 2 and searchPackage == False):
+        elif (sensorBool == 2 and searchPackage == False):
             UART_send_repeat(upTick)
             while(1):
                 if (readIRsensors() == 1):
                     break
-            #QR = readQR()
-            QR = {"Item": "Box1"}
+            QR = readQR()
             if QR != "":    
+                QR = json.loads(QR)
                 if (QR["Item"] == package):
                     searchPackage = True
                     if (itemLevel == 1):
@@ -173,8 +175,6 @@ def main(package):
                     if (readIRsensors() == 1):
                         break
             searchMove(endingPoint["Direction"])
-        elif (sensorBool == 1):
-            break
         
     #Reach the node
 
@@ -259,9 +259,11 @@ def nodeMove(start, end):
 def PinSetup():
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
+    GPIO.setup(LED, GPIO.OUT)
     GPIO.setup(MRDY, GPIO.OUT)
     GPIO.setup(SRDY, GPIO.IN)
     GPIO.output(MRDY, GPIO.HIGH)
+    GPIO.output(LED, GPIO.LOW)
 
 
 #Connects to the mongoDB client and prints out the available databases and collections
@@ -342,6 +344,7 @@ def readIRsensors():
 #Todo Read QR code code
 def readQR():
     # set up camera object
+    GPIO.output(LED, GPIO.HIGH)
     cap = cv.VideoCapture(0)
     # cap.set(3,640)
     # cap.set(4,480)
@@ -364,8 +367,10 @@ def readQR():
         if currentTime - startTime >= 3:
             break
         if myData != "":
+            GPIO.output(LED, GPIO.LOW)
             return myData
     return myData
+    GPIO.output(LED, GPIO.LOW)
    
 
 #Todo Create code to move robot when searching for a box inbetween nodes
