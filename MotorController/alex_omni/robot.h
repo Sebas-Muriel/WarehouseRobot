@@ -5,10 +5,13 @@ void pwm_set_duty(int channel, int duty);
 void command_motor(int channel, int duty);    
 void fwdKinematics(void);        
 float IR_PID(uint8_t *frontSensor);              
-void invKinematics(uint8_t *front, char d, uint8_t *back);               
+void invKinematics(uint8_t *front, char d, uint8_t *back, char dirPID);               
 void timer_init(void);                        
 void GetCurrentStatus(void);                  
-void Motor_Control(uint8_t *front, char d, uint8_t *back);                     
+void Motor_Control(uint8_t *front, char d, uint8_t *back, char LiftDir, float desHeight, char dirPID); 
+
+// lifting functions
+void motorLifting(char LiftDir, float Height);                    
 
 // Encoder Functions
 void encoder1CHB(void);   
@@ -18,12 +21,12 @@ void encoder2CHA(void);
 void encoder3CHB(void);   
 void encoder3CHA(void);   
 void encoder4CHB(void);   
-void encoder4CHA(void);   
+void encoder4CHA(void);  
+void encoder5CHB(void);
+void encoder5CHA(void); 
 void encoder_read(void);
 void encoder_init(void); 
 
-//Sonar sensors
-void readSonars(void);
 
 float P =0, I =0, U =0;
 float kp = .02, ki = .001;                    
@@ -32,6 +35,7 @@ float kp = .02, ki = .001;
 #define pi          3.141516
 #define PPR         5736.0     // Pulses per revolution (w/ gear box included)
 #define del_T       0.0083       // [s]
+#define del_T_Lift  0.01
 #define wheelRad    0.05        // [m]
 #define robotWidth  0.4953     // [m] (19.5 inches)
 #define robotLength 0.4953    // [m] (19.5 inches)
@@ -42,13 +46,13 @@ float R = -sqrt(pow(robotWidth/2.0, 2) + pow(robotLength/2.0, 2));
 // controller constants
 //#define  Kp 50.0
 //#define  Kd 10.0
-float Kp[4] = {50.0, 50.0, 50.0, 50.0};
-float Kd[4] = {10.0, 10.0, 10.0, 10.0};
+float Kp[5] = {50.0, 50.0, 50.0, 50.0, 50.0};
+float Kd[5] = {10.0, 10.0, 10.0, 10.0, 10.0};
 
 #define Vcc 12.0
 
-float des_Vol[4] = {0.,0.,0.,0.}; // desired voltage to reach desired duty cycle
-int   duty_cycle[4];
+float des_Vol[5] = {0.,0.,0.,0.,0.}; // desired voltage to reach desired duty cycle
+int   duty_cycle[5];
 
 
 // pins for encoder 0
@@ -68,7 +72,7 @@ const byte interruptPINbackLeft1 = 48;    // yellow encoder wire
 const byte interruptPINbackLeft2 = 49;    // white encoder wire
 
 
-long int encoder_val[4]= {0,0,0,0}; 
+long int encoder_val[5]= {0,0,0,0,0}; 
 
 /*
 //Pins for sonar sensors
@@ -78,19 +82,44 @@ const int anPinLeft = 1; // left sonar
 float obstaclePos[2]; // global position of the closest obstacle 
 */
 
-float    joint_pos[4]     = {0.0,0.0,0.0,0.0};  // acual wheel position in rad, 0: frontLeft, 1: frontRight,  2: backRight, 3: backLeft
-float    joint_vel[4]     = {0.0,0.0,0.0,0.0};  // actual wheel velocity in rad/s, 0: frontLeft, 1: frontRight,  2: backRight, 3: backLeft
+
+float    joint_pos[5]     = {0.0,0.0,0.0,0.0,0.0};  // acual wheel position in rad, 0: frontLeft, 1: frontRight,  2: backRight, 3: backLeft
+float    joint_vel[5]     = {0.0,0.0,0.0,0.0,0.0};  // actual wheel velocity in rad/s, 0: frontLeft, 1: frontRight,  2: backRight, 3: backLeft
+                                                    // NOTE: 5 is for the lifting mechanism
 float    robot_vel[3]     = {0.0,0.0,0.0};      // robot forward velocity (x) [m/s], robot side velocity (y) [m/s], and angular velocity[rad/s]
 float    robot_pos[3]     = {0.0,0.0,0.0};      // robot gloabal pose X[m],Y[m], Theta[rad]
 byte     state1 = 0; // for encoders
 byte     state2 = 0;
 byte     state3 = 0;
 byte     state4 = 0;
+byte     state5 = 0;
 
-float des_joint_pos[4] = {0.0,0.0,0.0,0.0};       // desired wheel positions
-float prev_des_joint_pos[4] = {0.0,0.0,0.0,0.0};  // previous desired wheel positions
-float des_joint_vel[4] = {0.0,0.0,0.0,0.0};       // desired wheel velocities
+float des_joint_pos[5] = {0.0,0.0,0.0,0.0,0.0};       // desired wheel positions
+float prev_des_joint_pos[5] = {0.0,0.0,0.0,0.0,0.0};  // previous desired wheel positions
+float des_joint_vel[5] = {0.0,0.0,0.0,0.0,0.0};       // desired wheel velocities
 float des_robot_vel[3] = {0.0,0.0,0.0};           // desired robot velocities, 0: fwd vel, 1: side vel, 2: angular vel
+
+///////// LIFTING MECHANISM SETUP /////////////
+//Pins used to control direction and speed of the motor. Speed pin should be a pwm pin
+void motorLifting(char LiftDir, float desHeight);
+
+// ADJUST FOR THE DUE
+#define MotorLiftDirection 41 
+#define MotorSpeed 4
+
+// pins for LIFTING ENCODER   ADJUST FOR DUE
+const byte interruptPINLift1 = 44;    // white encoder wire   (CHB)
+const byte interruptPINLift2 = 45;    // yellow encoder wire  (CHA) 
+
+#define Gear_Ratio  43
+#define pulleyRad   0.038     // [m] wheel radius     NOTE: circumference of  0.255 m
+#define PPR_LIFT    81100  //82192          //85500.00  // (500 * 4) PPR * (43 Gear Ratio) // 81100 // We have 150 for robot coordinates; We have 82510 for real values 
+
+float forkVel = 0;        // actual velocity of the fork
+float forkHeight = 0;     // desired relative height of the forks
+float desForkVel = 0.0;   // desired vertical velocity of the forks
+const float forkSpeed = 0.03;    // desired speed of the forks to move up
+
    
 
 // initialize timer
@@ -99,7 +128,7 @@ void timer_init(void){
   // initialize timer1
      noInterrupts();           // disable all interrupts
 
-      PMC->PMC_PCER0 |= PMC_PCER0_PID27;                        
+                 PMC->PMC_PCER0 |= PMC_PCER0_PID27;                        
       TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK2    
                               | TC_CMR_ABETRG               
                               | TC_CMR_LDRA_RISING          
@@ -121,6 +150,9 @@ void pwm_init(void)
     pinMode(13, OUTPUT);  //TIOB0   // motor 1
     pinMode(3, OUTPUT);   //TIOA7   // motor 2
     pinMode(12, OUTPUT);  //TIOB8   // motor 3
+
+    // LIFTING MECHANISM MOTOR
+    pinMode(MotorSpeed, OUTPUT);
 
 }
 
@@ -144,6 +176,9 @@ void pwm_set_duty(int channel, int duty)
     else if (channel == 3)
       analogWrite(13, duty);
 
+    else if (channel == 4)
+      analogWrite(MotorSpeed, duty);    
+
 }
 
 
@@ -166,6 +201,10 @@ void command_motor(int channel, int duty)
     else if (channel == 3){
       if (duty > 0) REG_PIOC_ODSR = (REG_PIOC_ODSR & 0b1111111111111111111111110111111) | 0b00000000000000000000000000100000; // set C5 to 1 and C6 to 0
       else          REG_PIOC_ODSR = (REG_PIOC_ODSR & 0b1111111111111111111111111011111) | 0b00000000000000000000000001000000; // set C5 to 0 and C6 to 1
+    }
+    else if (channel == 4){
+      if (duty > 0) digitalWrite(MotorLiftDirection, LOW); 
+      else digitalWrite(MotorLiftDirection, HIGH);
     }
     
        
@@ -222,6 +261,15 @@ void startTimer(Tc *tc, uint32_t channel, IRQn_Type irq, uint32_t frequency) {
    pinMode(interruptPINbackLeft2, INPUT_PULLUP);
    attachInterrupt(digitalPinToInterrupt(interruptPINbackLeft1), encoder4CHA, CHANGE);
    attachInterrupt(digitalPinToInterrupt(interruptPINbackLeft2), encoder4CHB, CHANGE); 
+
+
+   // LIFTING ENCODER
+   pinMode(interruptPINLift1, INPUT_PULLUP);
+   pinMode(interruptPINLift2, INPUT_PULLUP);
+   attachInterrupt(digitalPinToInterrupt(interruptPINLift1), encoder5CHA, CHANGE);
+   attachInterrupt(digitalPinToInterrupt(interruptPINLift2), encoder5CHB, CHANGE); 
+
+   
  }
 
 
@@ -518,10 +566,73 @@ void encoder4CHB(void)
 }
 
 
+
+//// Encoder 5 Functions
+//Encoder ENC5(interruptPINLift1, interruptPINLift2);
+
+void encoder5CHA(void) 
+{
+
+if ((state5 == 0) && (digitalRead(interruptPINLift1) ==1))
+     {
+      state5 =2;
+      encoder_val[4] -=1;
+     }
+else if ((state5==2) && (digitalRead(interruptPINLift1) ==0))
+  {
+    state5 =0;
+    encoder_val[4] +=1;
+    }
+
+   else if ((state5==1) && (digitalRead(interruptPINLift1) ==1))
+    {
+    state5 =3;
+    encoder_val[4] +=1;
+    }
+   else if ((state5==3) && (digitalRead(interruptPINLift1) ==0))
+   {
+      state5 = 1;
+      encoder_val[4] -=1;
+    }
+
+}
+
+
+void encoder5CHB(void)
+{
+  
+   if ((state5 == 0) && (digitalRead(interruptPINLift2) ==1))
+     {
+      state5 = 1;
+      encoder_val[4] +=1;
+     }
+  else if ((state5 == 3) && (digitalRead(interruptPINLift2) ==0))
+  {
+    state5 =2;
+    encoder_val[4] +=1;
+    }
+
+  else if ((state5==2) && (digitalRead(interruptPINLift2) ==1))
+  //else if ((state2==2) && (digitalReadFast(interruptPIN19) ==1)) 
+    {
+    state5 = 3;
+    encoder_val[4] -=1;
+    }
+   
+  else if ((state5==1) && (digitalRead(interruptPINLift2) ==0))
+    {
+      state5 =0;
+      encoder_val[4] -=1;
+    }
+
+}
+
+
+
 // determine the current position of the robot's wheels
  void GetCurrentStatus(void)
   {
-    static float prev_pos[4] = {0.0, 0.0, 0.0, 0.0}; 
+    static float prev_pos[5] = {0.0, 0.0, 0.0, 0.0, 0.0}; 
     
     //joint_pos[0] = encoder_val[0]*2*pi/(Gear_Ratio*400);
     joint_pos[0] = encoder_val[0]*2*pi/(PPR);
@@ -552,6 +663,15 @@ void encoder4CHB(void)
     joint_vel[3] = (joint_pos[3] - prev_pos[3])/del_T; 
     
     prev_pos[3] = joint_pos[3];
+
+
+    /////// LIFTING MOTORS
+    // joint_pos[1] = -1.0*encoder_val[1]*2*pi/(Gear_Ratio*400);
+    joint_pos[4] = encoder_val[4]*2*pi/(PPR_LIFT); 
+    
+    joint_vel[4] = (joint_pos[4] - prev_pos[4])/del_T_Lift; 
+    
+    prev_pos[4] = joint_pos[4];
     
  
     fwdKinematics(); // compute robot velocities and update robot global pose
@@ -577,7 +697,13 @@ void fwdKinematics(void){
   robot_pos[2] = robot_pos[2] + robot_vel[2] * del_T/factor;      // heading angle update
 
   robot_pos[2] = atan2(sin(robot_pos[2]), cos(robot_pos[2])); // constrain between [-pi,pi) 
-  
+
+  /// LIFTING MOTOR
+  // upward velocity
+  forkVel = joint_vel[4] * pulleyRad;
+
+  // how far up the package has moved
+  forkHeight = forkHeight + forkVel*del_T_Lift;   // X position update
  
 }
 
@@ -608,34 +734,92 @@ float IR_PID(uint8_t *frontSensor)
   return sum;
 }
 
+void motorLifting(char LiftDir, float desHeight){
+  
+      // if the forks are not at the desired height      
+      if (LiftDir == 'u') { // if the forks are moving up
+        if (forkHeight < desHeight){
+          desForkVel = forkSpeed;  // forks move upwards
+        }
+        // forks have reached desired height  
+        if (forkHeight >= desHeight) {
+          desForkVel = 0.0;        // set flag to 0 so forks stop moving
+        }
+      }
+      else if (LiftDir == 'd') { // if the forks are moving down
+        if (forkHeight > desHeight){
+          desForkVel = -forkSpeed*1.5;
+        }
+        if (forkHeight <= desHeight){
+          desForkVel = 0.0;       // set flag to 0 so forks stop moving
+        }
+      }
+      else if (LiftDir == 's'){
+        desForkVel = 0.0;
+      }
+
+}
+
 
 // determines the desired angular velocities of each wheel to reach the specified speed in the main loop
-void invKinematics(uint8_t *front, char d, uint8_t *back){
+void invKinematics(uint8_t *front, char d, uint8_t *back, char dirPID){
   float PIDerror = IR_PID(front);
+  float backPIDerror = IR_PID(back);
   if ( U > .15) U = .15;
   if (U < -.15) U = -.15;
-//  IR_PID(back);
-//  if ( Ub > .15) Ub = .15;
-//  if (Ub < -.15) Ub = -.15;
+
+  if (dirPID == 'l' || dirPID == 'd')
+  {
+    if (PIDerror > backPIDerror)
+    {
+      des_robot_vel[2] += 1*pi/180;
+    }
+    else if(PIDerror < backPIDerror)
+    {
+      des_robot_vel[2] += -pi/180;
+    }
+    else
+    {
+    des_robot_vel[2] = 0.0;
+    }
+  }
+  else if(dirPID == 'r' || dirPID == 'u')
+  {
+    if (PIDerror > backPIDerror)
+    {
+      des_robot_vel[2] += -1*pi/180;
+    }
+    else if(PIDerror < backPIDerror)
+    {
+      des_robot_vel[2] += pi/180;
+    }
+    else
+    {
+      des_robot_vel[2] = 0.0;
+    }
+  }
+  else if (dirPID == 's')
+  {
+    des_robot_vel[2] = 0.0;
+  }
   
-
-  // update desired robot angular velocity
- // Serial.println(U);
-//  des_robot_vel[2] = U;
-
   if (d == 'l')
+  {
     des_robot_vel[0] = -U;
-  else
+  }
+  else if (d == 'u')
   {
     des_robot_vel[1] = -U;
   }
+
+
 
   if( PIDerror == 0)
   {
     I = 0;
     if (d == 'l')
       des_robot_vel[0] = 0;
-    else
+    else if (d == 'u')
     {
       des_robot_vel[1] = 0;
     }
@@ -655,45 +839,62 @@ void invKinematics(uint8_t *front, char d, uint8_t *back){
   des_joint_vel[3] = (1/wheelRad)*( des_robot_vel[0]*cos(pi/4.0) + des_robot_vel[1]*sin(pi/4.0) + R*des_robot_vel[2]); // back left wheel   (omega 4)
 
 
-//  des_joint_vel[0] = 1.4;
-//  des_joint_vel[1] = 1.4;
-//  des_joint_vel[2] = 1.4;
-//  des_joint_vel[0] = 1.4;
+  // LIFTING MOTOR
+  des_joint_vel[4] = desForkVel / pulleyRad;
 
 }
 
 
 
-void  Motor_Control(uint8_t *first, char d, uint8_t *back) {
+void  Motor_Control(uint8_t *first, char d, uint8_t *back, char LiftDir, float desHeight, char dirPID) {
 
   int i;
-    
-  // map desired robot velocities to desired wheel velocities
-  invKinematics(first, d, back);
+  
+  invKinematics(first, d, back, dirPID);
+  motorLifting(LiftDir, desHeight);
 
-  // PD control Law
-  for(i = 0;i<4;i++){
-    des_joint_pos[i] = prev_des_joint_pos[i] + des_joint_vel[i]*del_T;
+
+  // PD control Law//
+  for(i = 0;i<5;i++){
+    
+    if (i < 4)
+      des_joint_pos[i] = prev_des_joint_pos[i] +  des_joint_vel[i]*del_T;
+    else 
+      des_joint_pos[i] = prev_des_joint_pos[i] +  des_joint_vel[i]*del_T_Lift;
+
+    
     prev_des_joint_pos[i]= des_joint_pos[i];
-    des_Vol[i] = Kp[i]*(des_joint_pos[i]-joint_pos[i])+ Kd[i]*(des_joint_vel[i] - joint_vel[i]);
+    des_Vol[i] = Kp[i]*(des_joint_pos[i]-joint_pos[i])+ Kd[i]*(des_joint_vel[i] - joint_vel[i]);  // original code 
+
+    //errorTot[i] = errorTot[i] + (des_joint_pos[i] - joint_pos[i])*del_T;
+    //des_Vol[i] = Kp*(des_joint_pos[i]-joint_pos[i])+ Kd*(des_joint_vel[i] - joint_vel[i]) + Ki*(errorTot[i]);
     
    // duty_cycle[i] = (int)(des_Vol[i])/Vcc*255;
-    duty_cycle[i] = (des_Vol[i])/Vcc*255;
-   
-    if (duty_cycle[i]>255)
-      duty_cycle[i] = 255;
-    else if (duty_cycle[i]<-255)
-      duty_cycle[i] = -255;
-      
+   if (i == 4)
+    duty_cycle[i] = (des_Vol[i])/9.0*70;
+   else
+     duty_cycle[i] = (des_Vol[i])/12.0*255;
+
+   if (i == 4){
+    if (duty_cycle[i]>50)
+      duty_cycle[i] = 50;
+    else if (duty_cycle[i]<-50)
+      duty_cycle[i] = -50;
+   }
+   else{
+    if (duty_cycle[i]>250)
+      duty_cycle[i] = 250;
+    else if (duty_cycle[i]<-250)
+      duty_cycle[i] = -250;
+   }
+    
   }
 
-
-  // control direction and speed of motors with specified duty_cycle
-  
-  command_motor(0,duty_cycle[0]);
-  command_motor(1,duty_cycle[1]);
-  command_motor(2,duty_cycle[2]);
-  command_motor(3,duty_cycle[3]);
+   command_motor(0,duty_cycle[0]); 
+   command_motor(1,duty_cycle[1]); 
+   command_motor(2,duty_cycle[2]); 
+   command_motor(3,duty_cycle[3]); 
+   command_motor(4,duty_cycle[4]); 
   
   /*
   command_motor(0,100);

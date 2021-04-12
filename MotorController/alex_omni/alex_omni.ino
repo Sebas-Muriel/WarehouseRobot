@@ -20,14 +20,19 @@
 #define TICK_MODE 0x02
 
 //defines for pins
-#define MRDY 0x04
-#define SRDY 0x05
+#define MRDY 0x06
+#define SRDY 0x07
 
 //defines for Motor Movement
 #define MOTOR_STOP 0x00
 #define MOTOR_LEVEL1 0x01
 #define MOTOR_LEVEL2 0x02
+#define MOTOR_LEVEL3 0x04
 #define MOTOR_LIFT 0x03
+
+#define BaseFloor .13
+#define Floor1 .16
+#define pickup .1
 
 unsigned long ticks = 0; 
 
@@ -46,14 +51,18 @@ uint8_t I2C_IR_Values[4] = {0,0,0,0};
 uint8_t v_up[8], v_down[8], h_left[8], h_right[8], s_stop[8];
 time_t start, current;
 float xposStart = 0, xposCurrent = 0, yposStart = 0, yposCurrent = 0;
-uint8_t NodeIntersectionFLG = 0, TickIntersectionFLG = 0;
+uint8_t NodeIntersectionFLG = 0, TickIntersectionFLG = 0, ForkFLG = 0;
 char node = 'l', tick ='l';
+
+float absforkLevel = .05;
 
 uint8_t dir = STOP;
 uint8_t motor = MOTOR_STOP;
 uint8_t mode = RESET_MODE;
 uint8_t UART_RX;
 uint8_t MRDY_VAL;
+char dirPID = 's';
+char forkDir = 's';
 
 /*
  * UART_REC() 
@@ -116,50 +125,15 @@ void setup() {
 
 void loop() {
 
-
   switch(dir)
   {
-    case UP:    des_robot_vel[0] = vxMax; des_robot_vel[1] = 0; break;
-    case DOWN:  des_robot_vel[0] = -vxMax; des_robot_vel[1] = 0; break;
-    case LEFT:  des_robot_vel[0] = 0.0; des_robot_vel[1] = vyMax; break;
-    case RIGHT: des_robot_vel[0] = 0.0; des_robot_vel[1] = -vyMax; break;
-    case STOP:  des_robot_vel[0] = 0.0; des_robot_vel[1] = 0.0; break;
+    case UP:    des_robot_vel[0] = vxMax; des_robot_vel[1] = 0; dirPID = 'u'; break;
+    case DOWN:  des_robot_vel[0] = -vxMax; des_robot_vel[1] = 0; dirPID = 'd'; break;
+    case LEFT:  des_robot_vel[0] = 0.0; des_robot_vel[1] = vyMax; dirPID = 'l'; break;
+    case RIGHT: des_robot_vel[0] = 0.0; des_robot_vel[1] = -vyMax; dirPID = 'r'; break;
+    case STOP:  des_robot_vel[0] = 0.0; des_robot_vel[1] = 0.0; dirPID = 's'; break;
   }
-
-
-
- 
-  
- 
-  
-  // Joint Position and Velocity Error 
-//  Serial.print("ErrorPosition[0]: "); Serial.print(des_joint_pos[0]-joint_pos[0]); Serial.print("\t");
-//  Serial.print("ErrorPosition[1]: "); Serial.print(des_joint_pos[1]-joint_pos[1]); Serial.print("\t");
-//  Serial.print("ErrorPosition[2]: "); Serial.print(des_joint_pos[2]-joint_pos[2]); Serial.print("\t");
-//  Serial.print("ErrorPosition[3]: "); Serial.print(des_joint_pos[3]-joint_pos[3]); Serial.print("\t");
-  
-
-
-  
-  // Print Duty Cycle 
-//  Serial.print("Duty0: "); Serial.print(duty_cycle[0]); Serial.print("\t");
-//  Serial.print("Duty1: "); Serial.print(duty_cycle[1]); Serial.print("\t");
-//  Serial.print("Duty2: "); Serial.print(duty_cycle[2]); Serial.print("\t");
-//  Serial.print("Duty3: "); Serial.print(duty_cycle[3]); Serial.print("\t");
-  
-  
-  /*
-  // Desired Voltage
-  Serial.print("Des Vol[0]: "); Serial.print(des_Vol[0]); Serial.print("\t");
-  Serial.print("Des Vol[1]: "); Serial.print(des_Vol[1]); Serial.print("\t");
-  Serial.print("Des Vol[2]: "); Serial.print(des_Vol[2]); Serial.print("\t");
-  Serial.print("Des Vol[3]: "); Serial.print(des_Vol[3]); Serial.print("\t");
-  */
-
-
-
-
-count++;
+  count++;
 
 
 }
@@ -169,7 +143,7 @@ count++;
 
 /*************************  Control Function        ***************************/
 
-void Control (uint8_t *front, char d, uint8_t *back)
+void Control (uint8_t *front, char d, uint8_t *back, char LiftDir, float desHeight, char dirPID)
 {
   int flagRad; // flag to decide the type of required turn
 
@@ -177,10 +151,11 @@ void Control (uint8_t *front, char d, uint8_t *back)
   if ( (ticks <= 300) ) {
     des_robot_vel[0] = 0.0;
     des_robot_vel[1] = 0.0;
+    desForkVel = 0.0;
   }
 
   GetCurrentStatus();
-  Motor_Control(front, d, back);
+  Motor_Control(front, d, back, LiftDir, desHeight, dirPID);
   ticks++;
   
 
@@ -195,6 +170,10 @@ void UART_REC()
 {
   
   digitalWrite(SRDY, LOW);
+  xposStart = 0;
+  xposCurrent = 0;
+  yposStart = 0;
+  yposCurrent = 0;
   NodeIntersectionFLG = 0;
   while(digitalRead(MRDY) == LOW)
   {
@@ -203,7 +182,7 @@ void UART_REC()
        UART_RX = Serial.read();
        dir = (UART_RX&0b00011100)>>2;
        mode = (UART_RX&0x03);
-       motor = (UART_RX&0b01100000)>>5;
+       motor = (UART_RX&0b11100000)>>5;
     }
   }
  digitalWrite(SRDY, HIGH);
@@ -307,18 +286,18 @@ uint8_t binToArray(uint8_t bin, uint8_t * arr)
       }
   }
   count = 0;
-  for (int i =0; i < 8; i++)
-  {
-    if (i >= largestIndex && count < largestOnes)
-    {
-      arr[i] = 1;
-      count++;
-    }
-    else
-    {
-      arr[i] = 0;
-    }
-  }
+//  for (int i =0; i < 8; i++)
+//  {
+//    if (i >= largestIndex && count < largestOnes)
+//    {
+//      arr[i] = 1;
+//      count++;
+//    }
+//    else
+//    {
+//      arr[i] = 0;                                                                                                                               
+//    }
+//  }
 
   return Array2Bin(arr);
 }
@@ -374,7 +353,12 @@ void TC3_Handler()
     I2C_IR_Values[0] = binToArray(I2C_IR_Values[0], v_up);
     I2C_IR_Values[1] = binToArray(I2C_IR_Values[1], v_down);
     I2C_IR_Values[2] = binToArray(I2C_IR_Values[2], h_left);
-    I2C_IR_Values[3] = binToArray(I2C_IR_Values[3], h_right);              
+    I2C_IR_Values[3] = binToArray(I2C_IR_Values[3], h_right);
+
+//    I2C_IR_Values[3] &= ~0b10000001;
+//    I2C_IR_Values[3] = binToArray(I2C_IR_Values[3], h_right);
+//    Serial.println
+   //Serial.println(I2C_IR_Values[3], BIN);       
   }
 
 //*************************************************************************//
@@ -384,10 +368,10 @@ void TC3_Handler()
   {
     dir = STOP;
     for (int i =0 ; i < 8; i++)
-      s_stop[i] = 0;
+    s_stop[i] = 0;
     NodeIntersectionFLG = 0;
     TickIntersectionFLG = 0;
-    //motor = MOTOR_LEVEL1;
+//    motor = MOTOR_LEVEL1;
     xposStart = 0;
     xposCurrent = 0;
     yposStart = 0;
@@ -430,7 +414,7 @@ void TC3_Handler()
       xposCurrent = robot_pos[1];
       
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (xposCurrent - xposStart >= ((robotLength)/ 2)-.02 && NodeIntersectionFLG == 1)
+      if (abs(abs(xposCurrent) - abs(xposStart)) >= ((robotLength)/ 2)-.06 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_left, s_stop);
@@ -439,10 +423,12 @@ void TC3_Handler()
     }
     else if(dir == RIGHT)
     {
+//      Serial.println(I2C_IR_Values[3], BIN);
       //Start Stopping process once a black line is hit
       if (I2C_IR_Values[3] == 0xFF && NodeIntersectionFLG == 0)
       {
-        xposStart = robot_pos[1];                                                                                           
+        xposStart = robot_pos[1];  
+                                                                                         
         NodeIntersectionFLG = 1;
       }
       //Ignore Ticks
@@ -453,7 +439,7 @@ void TC3_Handler()
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(xposCurrent) - abs(xposStart) >=  ((robotLength)/2)-.02 && NodeIntersectionFLG == 1)
+      if (abs(abs(xposCurrent) - abs(xposStart)) >=  ((robotLength)/2)-.06 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_right, s_stop);
@@ -469,8 +455,10 @@ void TC3_Handler()
         NodeIntersectionFLG = 1;
       }
       yposCurrent = robot_pos[0];
+
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (yposCurrent - yposStart >= ((robotLength)/ 2)-.05 && NodeIntersectionFLG == 1)
+
+      if (abs(abs(yposCurrent) - abs(yposStart)) >= ((robotLength)/ 2)-.05 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(v_up, s_stop);
@@ -480,9 +468,10 @@ void TC3_Handler()
     else if(dir == DOWN)
     {
       //Start Stopping process once a black line is hit
-      if ((I2C_IR_Values[1] == 0xFF || I2C_IR_Values[1] == 0xFE || I2C_IR_Values[1] == 0x7F) && NodeIntersectionFLG == 0)
+      if (I2C_IR_Values[1] == 0xFF && NodeIntersectionFLG == 0)
       {
         yposStart = robot_pos[0];
+        NodeIntersectionFLG = 1;
         NodeIntersectionFLG = 1;
       }
       yposCurrent = robot_pos[0];
@@ -492,7 +481,7 @@ void TC3_Handler()
         binToArray(I2C_IR_Values[1], v_down);
       }
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(yposCurrent) - abs(yposStart) >= ((robotLength)/ 2)-.05 && NodeIntersectionFLG == 1)
+      if (abs(abs(yposCurrent) - abs(yposStart)) >= ((robotLength)/ 2)-.06 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(v_down, s_stop);
@@ -538,7 +527,7 @@ void TC3_Handler()
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(xposCurrent )- abs(xposStart) >= ((robotLength)/ 2.0)-.02 && NodeIntersectionFLG == 1)
+      if (abs(abs(xposCurrent )- abs(xposStart)) >= ((robotLength)/ 2.0)-.06 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_left, s_stop);
@@ -569,7 +558,7 @@ void TC3_Handler()
       }
       xposCurrent = robot_pos[1];
       //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
-      if (abs(xposCurrent )- abs(xposStart) >= ((robotLength)/ 2.0)-.02 && NodeIntersectionFLG == 1)
+      if (abs(abs(xposCurrent )- abs(xposStart)) >= ((robotLength)/ 2.0)-.06 && NodeIntersectionFLG == 1)
       {
         dir = STOP;
         CopyArr(h_right, s_stop);
@@ -579,38 +568,97 @@ void TC3_Handler()
           UART_TX('2');
       }   
     }
+    else if(dir == UP)
+    {
+      //Start Stopping process once a black line is hit
+      if (I2C_IR_Values[0] == 0xFF /*|| I2C_IR_Values[0] == 0xFE || I2C_IR_Values[0] == 0x7F)*/ && NodeIntersectionFLG == 0)
+      {
+        yposStart = robot_pos[0];
+        NodeIntersectionFLG = 1;
+      }
+      yposCurrent = robot_pos[0];
+
+      //Stop the robot once the stopping process begins and after the robot travels its distance in the x direction
+
+      if (abs(abs(yposCurrent) - abs(yposStart)) >= .05 && NodeIntersectionFLG == 1)
+      {
+        dir = STOP;
+        CopyArr(v_up, s_stop);
+        UART_TX('1');
+      }
+    }
   }
 //*************************************************************************//
 //******************************MOTOR**************************************//
 //*************************************************************************//
-  if (motor == MOTOR_STOP)
+//
+  
+  if (ForkFLG == 0)
   {
-    
+    if (motor == MOTOR_STOP)
+    {
+      ForkFLG = 0;
+    }
+    else if(motor == MOTOR_LEVEL1)
+    {
+      forkDir = 'd';
+      absforkLevel = BaseFloor;
+      ForkFLG = 1;
+  
+    }
+    else if(motor == MOTOR_LEVEL2)
+    {
+      absforkLevel = Floor1;
+      if (absforkLevel > forkHeight){ forkDir = 'u';}
+      else if(absforkLevel < forkHeight) {forkDir = 'd';}
+      ForkFLG = 1;
+    }
+    else if(motor == MOTOR_LEVEL3)
+    {
+      absforkLevel = Floor1*2;
+      if (absforkLevel > forkHeight){ forkDir = 'u';}
+      else if(absforkLevel < forkHeight) {forkDir = 'd';}
+      ForkFLG = 1;
+    }
+    else if(motor == MOTOR_LIFT)
+    {
+      forkDir = 'u';
+      absforkLevel += pickup;
+      ForkFLG = 1;
+    }
   }
-  else if(motor == MOTOR_LEVEL1)
+  if (forkDir == 'u')
   {
-    
+    if (ForkFLG == 1 && absforkLevel <= forkHeight)
+    {
+      UART_TX('3');
+      ForkFLG =0;
+      motor = MOTOR_STOP;
+    }
   }
-  else if(motor == MOTOR_LEVEL2)
+  else if(forkDir == 'd')
   {
-    
+    if (ForkFLG == 1 && absforkLevel >= forkHeight)
+    {
+      UART_TX('3');
+      ForkFLG =0;
+      motor = MOTOR_STOP;
+    }
   }
-  else if(motor == MOTOR_PICKUP)
-  {
-    
-  }
-
+  
+//  Serial.println(encoder_val[4]);
+//  Serial.println(forkHeight);
 
 //*************************************************************************//
 //******************************Controller*********************************//
 //*************************************************************************//
   switch(dir)
   {
-    case LEFT: Control(h_left, 'l', h_right); break;
-    case RIGHT: Control(h_right, 'l', h_left); break;
-    case UP: Control(v_up, 'u', v_down); break;
-    case DOWN: Control(v_down, 'u', v_up); break;
-    case STOP: Control(s_stop,'u', s_stop); break;
+    case LEFT: Control(h_left, 'l', h_right, forkDir, absforkLevel, dirPID); break;
+    case RIGHT: Control(h_right, 'l', h_left, forkDir, absforkLevel, dirPID); break;
+    case UP: Control(v_up, 'u', v_down, forkDir, absforkLevel, dirPID); break;
+    case DOWN: Control(v_down, 'u', v_up, forkDir, absforkLevel, dirPID); break;
+    case STOP: Control(s_stop,'s', s_stop, forkDir, absforkLevel, dirPID); break;
   }
 }
 /********************************************************************/

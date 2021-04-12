@@ -16,24 +16,40 @@ void setup()
 {
   // configure the sensors
   qtr.setTypeRC();
-  qtr.setSensorPins((const uint8_t[]){51, 49, 47, 45, 43, 41, 39, 37}, SensorCount);
+//  qtr.setSensorPins((const uint8_t[]){51, 49, 47, 45, 43, 41, 39, 37}, SensorCount);
+  qtr.setSensorPins((const uint8_t[]){37, 39, 41, 43, 45, 47, 49, 51}, SensorCount);
   qtr.setEmitterPin(53);
 
   qtr2.setTypeRC();
-  qtr2.setSensorPins((const uint8_t[]){50, 48, 46, 44, 42, 40, 38, 36}, SensorCount);
+//  qtr2.setSensorPins((const uint8_t[]){50, 48, 46, 44, 42, 40, 38, 36}, SensorCount);
+  qtr2.setSensorPins((const uint8_t[]){36, 38, 40, 42, 44, 46, 48, 50}, SensorCount);
   qtr2.setEmitterPin(52);
 
   qtr3.setTypeRC();
-  qtr3.setSensorPins((const uint8_t[]){A1, A2, A3, A4, A5, A6, A7, A8}, SensorCount);
+//  qtr3.setSensorPins((const uint8_t[]){A1, A2, A3, A4, A5, A6, A7, A8}, SensorCount);
+  qtr3.setSensorPins((const uint8_t[]){A8, A7, A6, A5, A4, A3, A2, A1}, SensorCount);
   qtr3.setEmitterPin(A0);
 
+
   qtr4.setTypeRC();
-  qtr4.setSensorPins((const uint8_t[]){3, 4, 5, 6, 7, 8, 9, 10}, SensorCount);
+//  qtr4.setSensorPins((const uint8_t[]){3, 4, 5, 6, 7, 8, 9, 10}, SensorCount);
+  qtr4.setSensorPins((const uint8_t[]){10, 9, 8, 7, 6, 5, 4, 3}, SensorCount);
   qtr4.setEmitterPin(11);
   
   Wire.begin(SLAVE_ADDRESS);
   Wire.onRequest(I2CrequestHandler);
   Serial.begin(9600);
+  
+//  pinMode(LED_BUILTIN, OUTPUT);
+//  digitalWrite(LED_BUILTIN, HIGH);
+//  for (uint16_t i = 0; i < 400; i++)
+//  {
+//    qtr.calibrate();
+//    qtr2.calibrate();
+//    qtr3.calibrate();
+//    qrt4.calibrate();
+//  }
+//  digitalWrite(LED_BUILTIN, LOW);
 }
 
 
@@ -58,21 +74,29 @@ void loop()
 //    {Serial.print(sensorValuesUp[i]); Serial.print('\t');}
 //  Serial.println();
 //  Serial.println(I2Cbuffer[0], BIN);
-////  Serial.println("\nDown:\t");
-////  for (uint8_t i = 0; i < SensorCount; i++)
-////    { Serial.print(sensorValuesDown[i]); Serial.print('\t');}
-////  Serial.println("\nLeft:\t");
-////  for (uint8_t i = 0; i < SensorCount; i++)
-////    { Serial.print(sensorValuesLeft[i]); Serial.print('\t');}
+//  
+//   
+//  Serial.println("\nDown:\t");
+//  for (uint8_t i = 0; i < SensorCount; i++)
+//    { Serial.print(sensorValuesDown[i]); Serial.print('\t');}
+//  Serial.println();
+//  Serial.println(I2Cbuffer[1], BIN);
+//  
+//  
+//  Serial.println("\nLeft:\t");
+//  for (uint8_t i = 0; i < SensorCount; i++)
+//    { Serial.print(sensorValuesLeft[i]); Serial.print('\t');}
+//  Serial.println();             
+//  Serial.println(I2Cbuffer[2], BIN);
+//  
 //  Serial.println("\nRight:\t");
 //  for (uint8_t i = 0; i < SensorCount; i++)
 //    { Serial.print(sensorValuesRight[i]); Serial.print('\t');}
-//
 //  Serial.println();
 //  Serial.println(I2Cbuffer[3], BIN);
-////  Serial.println();
 //  delay(500);
 }
+
 
 uint8_t readSensors(uint16_t values[])
 {
@@ -91,7 +115,7 @@ uint8_t readSensors(uint16_t values[])
       case 6: adder = 0x40; break;
       case 7: adder = 0x80; break;
     }
-    if (values[i] > 2400)
+    if (values[i] == 2500)
       returnValue += adder;
   }
   return returnValue;
