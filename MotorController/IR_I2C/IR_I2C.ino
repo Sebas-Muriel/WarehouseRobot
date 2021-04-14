@@ -115,7 +115,7 @@ uint8_t readSensors(uint16_t values[])
       case 6: adder = 0x40; break;
       case 7: adder = 0x80; break;
     }
-    if (values[i] == 2500)
+    if (values[i] >= 2500)
       returnValue += adder;
   }
   return returnValue;

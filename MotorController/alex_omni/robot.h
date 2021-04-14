@@ -772,11 +772,11 @@ void invKinematics(uint8_t *front, char d, uint8_t *back, char dirPID){
   {
     if (PIDerror > backPIDerror)
     {
-      des_robot_vel[2] += 1*pi/180;
+      des_robot_vel[2] += (1*pi/180)/2;
     }
     else if(PIDerror < backPIDerror)
     {
-      des_robot_vel[2] += -pi/180;
+      des_robot_vel[2] += (-pi/180)/2;
     }
     else
     {
@@ -787,11 +787,11 @@ void invKinematics(uint8_t *front, char d, uint8_t *back, char dirPID){
   {
     if (PIDerror > backPIDerror)
     {
-      des_robot_vel[2] += -1*pi/180;
+      des_robot_vel[2] += (-pi/180)/2;
     }
     else if(PIDerror < backPIDerror)
     {
-      des_robot_vel[2] += pi/180;
+      des_robot_vel[2] += (pi/180)/2;
     }
     else
     {
