@@ -39,6 +39,24 @@ app.get('/Training', (req, res) => {
     var start = "<!DOCTYPE html><html lang='en'><title>Senior Design T311 & T304 Project</title><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><link rel='stylesheet' href='https://www.w3schools.com/w3css/4/w3.css'><link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Lato'><link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Montserrat'><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'><body><!-- Navbar --><div class='w3-top'>  <div class='w3-bar w3-blue w3-card w3-left-align w3-large'>    <a href='" + hostname + "' class='w3-bar-item w3-button w3-hide-small w3-padding-large w3-black'>Back</a>  </div>  <!-- Navbar on small screens -->  <div id='navDemo' class='w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large'>    <a href='" + hostname + "' class='w3-bar-item w3-button w3-padding-large w3-black'>Back</a>  </div></div><!-- Header --><header class='w3-container w3-light-grey w3-center' style='padding:128px 16px'>";
     var end = "</header><!-- Footer --><footer class='w3-container w3-padding-16 w3-center w3-blue'>    <div class='w3-xlarge '>    <i class='fa fa-facebook-official w3-hover-opacity'></i>    <i class='fa fa-instagram w3-hover-opacity'></i>    <i class='fa fa-snapchat w3-hover-opacity'></i>    <i class='fa fa-pinterest-p w3-hover-opacity'></i>    <i class='fa fa-twitter w3-hover-opacity'></i>    <i class='fa fa-linkedin w3-hover-opacity'></i> </div></footer><script>// Used to toggle the menu on small screens when clicking on the menu buttonfunction myFunction() {  var x = document.getElementById('navDemo');  if (x.className.indexOf('w3-show') == -1) {    x.className += ' w3-show';  } else {     x.className = x.className.replace(' w3-show', '');  }}</script></body></html>";
     var message = "<h1 style = 'font-size: 40px;'>Training Robot With Grid: " + req.query.grid + " </h1>"
+   //copy pasta 4/12
+    response = {  
+        Name:req.query.newID
+    };
+    let python = spawn('python3', ['train.py', response.Name]);
+                python.stdout.on('data', function (data) {
+                     console.log('Pipe data from python script ...');
+                     dataToSend = data.toString();
+                     BUSY = true
+                    });
+            
+                 python.on('close', (code) => {
+                     console.log(`child process close all stdio with code ${code}`); 
+                     BUSY = false
+
+                 });
+                //Add the response to the queue
+                console.log(response);
     res.send(start + message + end);
 });
 
